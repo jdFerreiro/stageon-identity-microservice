@@ -1,4 +1,7 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { isTokenExpired } from "../lib/auth";
+  const navigate = useNavigate();
 import api from "../services/api";
 import {
   Box,
@@ -28,6 +31,11 @@ const EditClubScreen: React.FC<EditClubScreenProps> = ({ clubId, onSuccess, onCa
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (isTokenExpired(token)) {
+      navigate("/login");
+      return;
+    }
     const fetchClub = async () => {
       try {
         const token = localStorage.getItem("token");

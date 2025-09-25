@@ -1,4 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from "react-router-dom";
+import { isTokenExpired } from "../lib/auth";
+  const navigate = useNavigate();
 import api from '../services/api';
 import { Box, TextField, Button, Alert, CircularProgress } from '@mui/material';
 import SaveIcon from '@mui/icons-material/Save';
@@ -12,6 +15,11 @@ const CreateRoleScreen: React.FC = () => {
 
   const ROLES_ENDPOINT = import.meta.env.VITE_API_ROLES || '/roles';
   useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (isTokenExpired(token)) {
+      navigate("/login");
+      return;
+    }
     // Token expiration check
     const checkToken = async () => {
       const token = localStorage.getItem('token');

@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { isTokenExpired } from "../lib/auth";
 import { Box, TextField, Button, Typography, Alert, CircularProgress, FormControl, InputLabel, Select, MenuItem } from "@mui/material";
+import api from "../services/api";
 import type { SelectChangeEvent } from "@mui/material";
 
 interface UserType {
@@ -13,6 +16,7 @@ interface Club {
 }
 
 const RegisterUserScreen: React.FC = () => {
+  const navigate = useNavigate();
   const [form, setForm] = useState({
     email: "",
     password: "",
@@ -29,13 +33,17 @@ const RegisterUserScreen: React.FC = () => {
   const [processing, setProcessing] = useState(false);
 
   useEffect(() => {
-    fetch("/user-types")
-      .then(res => res.json())
-      .then((data: UserType[]) => setUserTypes(data))
+    const token = localStorage.getItem("token");
+    if (isTokenExpired(token)) {
+      localStorage.removeItem("token");
+      navigate("/login");
+      return;
+    }
+    api.get("/user-types")
+      .then(res => setUserTypes(res.data))
       .catch(() => setUserTypes([]));
-    fetch("/clubs")
-      .then(res => res.json())
-      .then((data: Club[]) => setClubs(data))
+    api.get("/clubs")
+      .then(res => setClubs(res.data))
       .catch(() => setClubs([]));
   }, []);
 
@@ -68,28 +76,19 @@ const RegisterUserScreen: React.FC = () => {
     setError("");
     setSuccess("");
     try {
-      const res = await fetch("/auth/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+      await api.post("/auth/register", form);
+      setSuccess("Usuario registrado correctamente.");
+      setForm({
+        email: "",
+        password: "",
+        firstName: "",
+        lastName: "",
+        roleId: "",
+        userTypeId: "",
+        clubs: [],
       });
-      if (res.status === 201) {
-        setSuccess("Usuario registrado correctamente.");
-        setForm({
-          email: "",
-          password: "",
-          firstName: "",
-          lastName: "",
-          roleId: "",
-          userTypeId: "",
-          clubs: [],
-        });
-      } else {
-        const data = await res.json();
-        setError(data.message || "No se pudo registrar el usuario.");
-      }
-    } catch {
-      setError("Error de red o servidor.");
+    } catch (err: any) {
+      setError(err?.response?.data?.message || "No se pudo registrar el usuario.");
     } finally {
       setProcessing(false);
     }

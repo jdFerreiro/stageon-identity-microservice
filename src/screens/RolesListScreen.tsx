@@ -1,5 +1,7 @@
   const ROLES_ENDPOINT = import.meta.env.VITE_API_ROLES || '/roles';
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { isTokenExpired } from '../lib/auth';
 import api from '../services/api';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
@@ -20,6 +22,7 @@ import CreateRoleScreen from './CreateRoleScreen';
 import EditRoleScreen from './EditRoleScreen';
 
 const RolesListScreen: React.FC = () => {
+  const navigate = useNavigate();
   const [processing, setProcessing] = useState(false);
   const [roles, setRoles] = useState<any[]>([]);
     const [deleteRoleId, setDeleteRoleId] = useState<string | null>(null);
@@ -70,20 +73,12 @@ const RolesListScreen: React.FC = () => {
 
   useEffect(() => {
     // Token expiration check
-    const checkToken = async () => {
-      const token = localStorage.getItem('token');
-      try {
-        await api.get(ROLES_ENDPOINT, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-      } catch (err: any) {
-        if (err?.response?.status === 401 || err?.response?.status === 403) {
-          localStorage.removeItem('token');
-          window.location.href = '/';
-        }
-      }
-    };
-    checkToken();
+    const token = localStorage.getItem('token');
+    if (isTokenExpired(token)) {
+      localStorage.removeItem('token');
+      navigate('/login');
+      return;
+    }
     const fetchRoles = async () => {
       const token = localStorage.getItem('token');
       const response = await api.get(ROLES_ENDPOINT, {
@@ -95,12 +90,12 @@ const RolesListScreen: React.FC = () => {
   }, []);
 
   const columns: GridColDef[] = [
-    { field: 'name', headerName: 'Nombre', flex: 2 },
-    { field: 'isActive', headerName: 'Estado', flex: 1, renderCell: (params) => params.value ? 'Activo' : 'Inactivo' },
+    { field: 'name', headerName: 'Nombre', width: 200 },
+    { field: 'isActive', headerName: 'Estado', width: 120, renderCell: (params) => params.value ? 'Activo' : 'Inactivo' },
     {
       field: 'actions',
       headerName: 'Acciones',
-      flex: 1,
+      width: 180,
       sortable: false,
       filterable: false,
       renderCell: (params) => (
@@ -158,7 +153,7 @@ const RolesListScreen: React.FC = () => {
           </IconButton>
         </Tooltip>
       </Box>
-      <Box width="100%" maxWidth={1000} mx="auto" flex={1} sx={{ boxSizing: 'border-box', overflow: 'auto', height: 'calc(100vh - 120px)' }}>
+      <Box width="100%" maxWidth={1000} mx="auto" flex={1} sx={{ boxSizing: 'border-box', overflowX: 'auto', height: 'calc(100vh - 120px)' }}>
         <DataGrid
           rows={roles}
           columns={columns}
@@ -170,11 +165,11 @@ const RolesListScreen: React.FC = () => {
           }}
           pageSizeOptions={[10, 20, 50]}
           sx={{
-            width: '100%',
+            width: '800px',
+            minWidth: '800px',
             minHeight: '60vh',
             maxHeight: '100%',
             background: '#fff',
-            maxWidth: 1000,
             margin: '0 auto',
             boxSizing: 'border-box',
             overflow: 'auto',

@@ -1,4 +1,7 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { isTokenExpired } from "../lib/auth";
+  const navigate = useNavigate();
 import { Box, Typography, List, ListItem, ListItemButton, ListItemText, Divider, Paper } from "@mui/material";
 import EditUserScreen from "./EditUserScreen";
 import ClubesUsuarioList from "./ClubesUsuarioList";
@@ -18,7 +21,12 @@ const PerfilScreen: React.FC = () => {
   const [usuarioId, setUsuarioId] = useState<string | null>(null);
 
   useEffect(() => {
-    const token = sessionStorage.getItem("token");
+    const token = localStorage.getItem("token");
+    if (isTokenExpired(token)) {
+      localStorage.removeItem("token");
+      navigate("/login");
+      return;
+    }
     if (token) {
       const id = getUserIdFromToken(token);
       setUsuarioId(id);

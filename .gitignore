@@ -36,3 +36,5 @@ coverage/
 
 # Optional: ignore public build artifacts
 /public/build/
+
+.npmrc

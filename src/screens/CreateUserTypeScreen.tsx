@@ -1,10 +1,12 @@
 import React, { useState } from "react";
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { isTokenExpired } from "../lib/auth";
 import api from "../services/api";
 import {
   Box,
   TextField,
   Button,
-  Typography,
   Alert,
   CircularProgress,
 } from "@mui/material";
@@ -15,6 +17,14 @@ type CreateUserTypeScreenProps = {
 };
 
 const CreateUserTypeScreen: React.FC<CreateUserTypeScreenProps> = ({ onSuccess, onCancel }) => {
+  const navigate = useNavigate();
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (isTokenExpired(token)) {
+      localStorage.removeItem("token");
+      navigate("/login");
+    }
+  }, [navigate]);
   const [name, setName] = useState("");
   const [error, setError] = useState("");
   const [processing, setProcessing] = useState(false);
@@ -43,9 +53,6 @@ const CreateUserTypeScreen: React.FC<CreateUserTypeScreenProps> = ({ onSuccess, 
 
   return (
     <Box component="form" onSubmit={handleSubmit} sx={{ mt: 2 }}>
-      <Typography variant="h6" mb={2}>
-        Crear Tipo de Usuario
-      </Typography>
       <TextField
         label="Nombre del Tipo"
         value={name}

@@ -108,7 +108,19 @@ const UserTypesListScreen: React.FC = () => {
   };
 
   return (
-    <Box p={4}>
+    <Box sx={{
+      width: "100%",
+      maxWidth: { xs: '100%', sm: 600, md: 900, lg: 1200 },
+      minHeight: "100vh",
+      mx: "auto",
+      px: { xs: 1, sm: 2, md: 3 },
+      py: { xs: 2, sm: 3, md: 4 },
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'stretch',
+      justifyContent: 'stretch',
+      height: '100vh',
+    }}>
       <Stack direction="row" justifyContent="space-between" alignItems="center" mb={2}>
         <Typography variant="h5">Tipos de Usuario</Typography>
         <Button
@@ -122,7 +134,7 @@ const UserTypesListScreen: React.FC = () => {
       </Stack>
       {loading && <CircularProgress />}
       {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
-      <List>
+  <List sx={{ width: "100%", minWidth: 0, flex: 1 }}>
         {userTypes.map((type) => (
           <ListItem
             key={type.id}

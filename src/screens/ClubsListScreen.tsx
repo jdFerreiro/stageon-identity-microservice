@@ -1,4 +1,7 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { isTokenExpired } from "../lib/auth";
+  const navigate = useNavigate();
 import api from "../services/api";
 import {
   Typography,
@@ -59,6 +62,11 @@ const ClubsListScreen: React.FC = () => {
   };
 
   useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (isTokenExpired(token)) {
+      navigate("/login");
+      return;
+    }
     fetchClubs();
   }, []);
 
@@ -112,7 +120,7 @@ const ClubsListScreen: React.FC = () => {
   };
 
   return (
-    <Paper sx={{ p: 4, maxWidth: 600, mx: "auto", mt: 4 }}>
+    <Paper sx={{ p: 4, maxWidth: 900, mx: "auto", mt: 4, overflowX: 'auto' }}>
       <Stack direction="row" justifyContent="space-between" alignItems="center" mb={2}>
         <Typography variant="h5">Lista de Clubes</Typography>
         <Button
@@ -126,7 +134,7 @@ const ClubsListScreen: React.FC = () => {
       </Stack>
       {loading && <CircularProgress />}
       {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
-      <List>
+      <List sx={{ minWidth: 800 }}>
         {clubs.map((club) => (
           <ListItem key={club.id} alignItems="flex-start"
             secondaryAction={
@@ -139,16 +147,17 @@ const ClubsListScreen: React.FC = () => {
                 </IconButton>
               </>
             }
+            sx={{ minWidth: 800 }}
           >
             <ListItemText
-              primary={club.name}
+              primary={<span style={{ width: '30%', display: 'inline-block' }}>{club.name}</span>}
               secondary={
-                <>
+                <span style={{ width: '60%', display: 'inline-block' }}>
                   {club.description && <span>{club.description}<br /></span>}
                   {club.address && <span>Dirección: {club.address}<br /></span>}
                   {club.phone && <span>Teléfono: {club.phone}<br /></span>}
                   {club.email && <span>Email: {club.email}</span>}
-                </>
+                </span>
               }
             />
           </ListItem>

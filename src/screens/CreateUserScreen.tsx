@@ -1,4 +1,7 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { isTokenExpired } from "../lib/auth";
+  const navigate = useNavigate();
 import api from "../services/api";
 import {
   Box,
@@ -37,6 +40,11 @@ const CreateUserScreen: React.FC<CreateUserScreenProps> = ({ onSuccess, onCancel
   const [userTypes, setUserTypes] = useState<UserType[]>([]);
 
   useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (isTokenExpired(token)) {
+      navigate("/login");
+      return;
+    }
     const fetchRoles = async () => {
       try {
         const token = localStorage.getItem("token");

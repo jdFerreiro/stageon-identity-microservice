@@ -1,4 +1,6 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { isTokenExpired } from '../lib/auth';
 import api from '../services/api';
 import {
   Box,
@@ -19,6 +21,7 @@ interface EditRoleScreenProps {
 }
 
 const EditRoleScreen: React.FC<EditRoleScreenProps> = ({ id }) => {
+  const navigate = useNavigate();
   const [isActive, setIsActive] = useState(false);
   const [name, setName] = useState('');
   const [error, setError] = useState('');
@@ -27,20 +30,12 @@ const EditRoleScreen: React.FC<EditRoleScreenProps> = ({ id }) => {
   const ROLES_ENDPOINT = import.meta.env.VITE_API_ROLES || '/roles';
   useEffect(() => {
     // Token expiration check
-    const checkToken = async () => {
-      const token = localStorage.getItem('token');
-      try {
-        await api.get(ROLES_ENDPOINT, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-      } catch (err: any) {
-        if (err?.response?.status === 401 || err?.response?.status === 403) {
-          localStorage.removeItem('token');
-          window.location.href = '/';
-        }
-      }
-    };
-    checkToken();
+    const token = localStorage.getItem('token');
+    if (isTokenExpired(token)) {
+      localStorage.removeItem('token');
+      navigate('/login');
+      return;
+    }
     const fetchRole = async () => {
       const token = localStorage.getItem('token');
       const response = await api.get(`${ROLES_ENDPOINT}/${id}`, {

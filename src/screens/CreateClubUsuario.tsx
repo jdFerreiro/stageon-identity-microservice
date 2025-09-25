@@ -1,5 +1,8 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { isTokenExpired } from "../lib/auth";
 import { Box, Button, MenuItem, Select, InputLabel, FormControl, CircularProgress, Alert } from "@mui/material";
+import api from "../services/api";
 
 interface Club {
   id: string;
@@ -13,38 +16,55 @@ interface Props {
 }
 
 const CreateClubUsuario: React.FC<Props> = ({ usuarioId, onSuccess, onCancel }) => {
+  const navigate = useNavigate();
   const [clubes, setClubes] = useState<Club[]>([]);
   const [selectedClubId, setSelectedClubId] = useState("");
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState(false);
   const [error, setError] = useState("");
+  const [userClubs, setUserClubs] = useState<string[]>([]);
 
   useEffect(() => {
-    fetch("/clubs")
-      .then(res => res.json())
-      .then((data: Club[]) => {
-        setClubes(data);
+    // Verificar expiración de token
+    const token = localStorage.getItem("token");
+    if (isTokenExpired(token)) {
+      navigate("/login");
+      return;
+    }
+    console.log("Token:", token);
+    console.log("UserId:", usuarioId);
+    // Obtener todos los clubes
+    api.get<Club[]>("/clubs")
+      .then(res => {
+        setClubes(res.data);
         setLoading(false);
       })
       .catch(() => setLoading(false));
+
+    // Obtener clubes del usuario
+    api.get(`/user-club/user/${usuarioId}`)
+      .then(res => {
+        // res.data es un array de relaciones { clubId, ... }
+        setUserClubs(res.data.map((rel: any) => rel.clubId));
+      })
+      .catch(() => setUserClubs([]));
   }, []);
 
   const handleAddClub = async () => {
     setProcessing(true);
     setError("");
+    // Verificar si ya está asociado
+    if (userClubs.includes(selectedClubId)) {
+      setError("El club ya está asociado al usuario.");
+      setProcessing(false);
+      return;
+    }
     try {
-      const token = localStorage.getItem("token");
-      await fetch(`/users/${usuarioId}/clubs`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ clubId: selectedClubId }),
-      });
+      await api.post(`/user-club`, { userId: usuarioId, clubId: selectedClubId });
       onSuccess();
-    } catch {
-      setError("No se pudo agregar el club.");
+    } catch (err: any) {
+      console.error("Error al agregar club:", err, err?.response?.data);
+      setError(err?.response?.data?.message || "No se pudo agregar el club.");
     } finally {
       setProcessing(false);
     }

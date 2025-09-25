@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { isTokenExpired } from "../lib/auth";
 import { useNavigate } from "react-router-dom";
 import api from "../services/api";
 import Box from "@mui/material/Box";
@@ -8,7 +9,7 @@ import IconButton from "@mui/material/IconButton";
 import Tooltip from "@mui/material/Tooltip";
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
-import BlockIcon from '@mui/icons-material/Block';
+import LockIcon from '@mui/icons-material/Lock';
 import LockOpenIcon from '@mui/icons-material/LockOpen';
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import Stack from "@mui/material/Stack";
@@ -24,8 +25,12 @@ import CircularProgress from '@mui/material/CircularProgress';
 // Importa el componente de clubes
 import ClubesUsuarioList from './ClubesUsuarioList';
 import GroupsIcon from '@mui/icons-material/Groups'; // Icono para clubes
+import { useTheme } from '@mui/material/styles';
+import useMediaQuery from '@mui/material/useMediaQuery';
 
 const UsersListScreen: React.FC = () => {
+  const theme = useTheme();
+  const isXs = useMediaQuery(theme.breakpoints.down('sm'));
   const [processing, setProcessing] = useState(false);
   const navigate = useNavigate();
   const [openCreate, setOpenCreate] = useState(false);
@@ -60,6 +65,12 @@ const UsersListScreen: React.FC = () => {
   };
 
   useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (isTokenExpired(token)) {
+      localStorage.removeItem("token");
+      navigate("/login");
+      return;
+    }
     fetchUsers();
   }, []);
 
@@ -123,48 +134,56 @@ const UsersListScreen: React.FC = () => {
 
   const columns: GridColDef[] = [
     { field: 'email', headerName: 'Email', flex: 2 },
-    { field: 'firstName', headerName: 'Nombre', flex: 2 },
-    { field: 'lastName', headerName: 'Apellido', flex: 2 },
+    { field: 'firstName', headerName: 'Nombre', flex: 1.5 },
+    { field: 'lastName', headerName: 'Apellido', flex: 1.5 },
     { field: 'role', headerName: 'Rol', flex: 1, renderCell: (params: any) => params.row?.role?.name || '' },
-    { field: 'isActive', headerName: 'Estado', flex: 0.5, renderCell: (params) => params.value ? 'Activo' : 'Bloqueado' },
+    { field: 'isActive', headerName: 'Estado', flex: 1, renderCell: (params) => params.value ? 'Activo' : 'Bloqueado' },
     {
       field: 'actions',
       headerName: 'Acciones',
-      flex: 1.5,
+      flex: 1.2,
       sortable: false,
       filterable: false,
-      renderCell: (params) => (
-        <Stack direction="row" spacing={0.1}>
-          <Tooltip title="Ver clubes">
-            <IconButton color="info" onClick={() => handleShowClubes(params.row.id)}>
-              <GroupsIcon />
-            </IconButton>
-          </Tooltip>
-          <Tooltip title="Editar">
-            <IconButton color="primary" onClick={() => handleEdit(params.row.id)}>
-              <EditIcon />
-            </IconButton>
-          </Tooltip>
-          {params.row.isActive ? (
-            <Tooltip title="Bloquear">
-              <IconButton color="error" onClick={() => handleBlock(params.row.id)}>
-                <BlockIcon />
+      renderCell: (params) => {
+        return (
+          <Stack
+            direction={isXs ? 'column' : 'row'}
+            spacing={0.5}
+            alignItems="center"
+            justifyContent="center"
+            sx={{ width: '100%' }}
+          >
+            <Tooltip title="Ver clubes">
+              <IconButton color="info" onClick={() => handleShowClubes(params.row.id)}>
+                <GroupsIcon />
               </IconButton>
             </Tooltip>
-          ) : (
-            <Tooltip title="Desbloquear">
-              <IconButton color="success" onClick={() => handleUnblock(params.row.id)}>
-                <LockOpenIcon />
+            <Tooltip title="Editar">
+              <IconButton color="primary" onClick={() => handleEdit(params.row.id)}>
+                <EditIcon />
               </IconButton>
             </Tooltip>
-          )}
-          <Tooltip title="Eliminar">
-            <IconButton color="warning" onClick={() => handleRemove(params.row.id)}>
-              <DeleteIcon />
-            </IconButton>
-          </Tooltip>
-        </Stack>
-      ),
+            {params.row.isActive ? (
+              <Tooltip title="Bloquear">
+                <IconButton color="success" onClick={() => handleBlock(params.row.id)}>
+                  <LockOpenIcon />
+                </IconButton>
+              </Tooltip>
+            ) : (
+              <Tooltip title="Desbloquear">
+                <IconButton color="error" onClick={() => handleUnblock(params.row.id)}>
+                  <LockIcon />
+                </IconButton>
+              </Tooltip>
+            )}
+            <Tooltip title="Eliminar">
+              <IconButton color="warning" onClick={() => handleRemove(params.row.id)}>
+                <DeleteIcon />
+              </IconButton>
+            </Tooltip>
+          </Stack>
+        );
+      },
     },
   ];
 
