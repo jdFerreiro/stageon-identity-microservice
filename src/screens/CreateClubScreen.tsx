@@ -11,7 +11,6 @@ import {
   CircularProgress,
   Paper,
 } from "@mui/material";
-import Grid from "@mui/material/Grid";
 
 type Club = {
   id: string;

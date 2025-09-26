@@ -3,7 +3,7 @@
   "publishConfig": {
     "registry": "https://npm.pkg.github.com/"
   },
-  "version": "1.0.1",
+  "version": "1.0.2",
   "type": "module",
   "main": "dist/identity-microservice.cjs.js",
   "module": "dist/identity-microservice.es.js",
