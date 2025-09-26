@@ -30,14 +30,14 @@ const EditRoleScreen: React.FC<EditRoleScreenProps> = ({ id }) => {
   const ROLES_ENDPOINT = import.meta.env.VITE_API_ROLES || '/roles';
   useEffect(() => {
     // Token expiration check
-    const token = localStorage.getItem('token');
+    const token = sessionStorage.getItem('token');
     if (isTokenExpired(token)) {
-      localStorage.removeItem('token');
+      sessionStorage.removeItem('token');
       navigate('/login');
       return;
     }
     const fetchRole = async () => {
-      const token = localStorage.getItem('token');
+      const token = sessionStorage.getItem('token');
       const response = await api.get(`${ROLES_ENDPOINT}/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -55,7 +55,7 @@ const EditRoleScreen: React.FC<EditRoleScreenProps> = ({ id }) => {
     }
     try {
       setProcessing(true);
-      const token = localStorage.getItem('token');
+      const token = sessionStorage.getItem('token');
       await api.patch(
         `${ROLES_ENDPOINT}/${id}`,
         { name: name.trim(), isActive },

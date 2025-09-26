@@ -19,9 +19,9 @@ type CreateUserTypeScreenProps = {
 const CreateUserTypeScreen: React.FC<CreateUserTypeScreenProps> = ({ onSuccess, onCancel }) => {
   const navigate = useNavigate();
   useEffect(() => {
-    const token = localStorage.getItem("token");
+    const token = sessionStorage.getItem("token");
     if (isTokenExpired(token)) {
-      localStorage.removeItem("token");
+      sessionStorage.removeItem("token");
       navigate("/login");
     }
   }, [navigate]);
@@ -34,7 +34,7 @@ const CreateUserTypeScreen: React.FC<CreateUserTypeScreenProps> = ({ onSuccess, 
     setProcessing(true);
     setError("");
     try {
-      const token = localStorage.getItem("token");
+  const token = sessionStorage.getItem("token");
       await api.post(
         "/user-types",
         { name },

@@ -47,7 +47,7 @@ const UsersListScreen: React.FC = () => {
   const [clubesUserId, setClubesUserId] = useState<string | null>(null);
 
   const fetchUsers = async () => {
-    const token = localStorage.getItem("token");
+  const token = sessionStorage.getItem("token");
     try {
       setProcessing(true);
       const response = await api.get(USERS_ENDPOINT, {
@@ -56,7 +56,7 @@ const UsersListScreen: React.FC = () => {
       setUsers(response.data);
     } catch (err: any) {
       if (err?.response?.status === 401 || err?.response?.status === 403) {
-        localStorage.removeItem("token");
+  sessionStorage.removeItem("token");
         navigate("/");
       }
     } finally {
@@ -65,9 +65,9 @@ const UsersListScreen: React.FC = () => {
   };
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
+  const token = sessionStorage.getItem("token");
     if (isTokenExpired(token)) {
-      localStorage.removeItem("token");
+  sessionStorage.removeItem("token");
       navigate("/login");
       return;
     }
@@ -85,7 +85,7 @@ const UsersListScreen: React.FC = () => {
   const confirmBlockUser = async () => {
     if (!userToDelete) return;
     setProcessing(true);
-    const token = localStorage.getItem("token");
+  const token = sessionStorage.getItem("token");
     await api.patch(`${USERS_ENDPOINT}/${userToDelete}`, { isActive: false }, {
       headers: { Authorization: `Bearer ${token}` },
     });
@@ -96,7 +96,7 @@ const UsersListScreen: React.FC = () => {
   };
   const handleUnblock = async (id: string) => {
     setProcessing(true);
-    const token = localStorage.getItem("token");
+  const token = sessionStorage.getItem("token");
     await api.patch(`${USERS_ENDPOINT}/${id}`, { isActive: true }, {
       headers: { Authorization: `Bearer ${token}` },
     });
@@ -111,7 +111,7 @@ const UsersListScreen: React.FC = () => {
   const confirmRemoveUser = async () => {
     if (!userToRemove) return;
     setProcessing(true);
-    const token = localStorage.getItem("token");
+  const token = sessionStorage.getItem("token");
     try {
       await api.delete(`${USERS_ENDPOINT}/${userToRemove}`, {
         headers: { Authorization: `Bearer ${token}` },

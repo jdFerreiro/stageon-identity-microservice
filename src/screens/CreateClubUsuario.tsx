@@ -26,13 +26,11 @@ const CreateClubUsuario: React.FC<Props> = ({ usuarioId, onSuccess, onCancel }) 
 
   useEffect(() => {
     // Verificar expiración de token
-    const token = localStorage.getItem("token");
+    const token = sessionStorage.getItem("token");
     if (isTokenExpired(token)) {
       navigate("/login");
       return;
     }
-    console.log("Token:", token);
-    console.log("UserId:", usuarioId);
     // Obtener todos los clubes
     api.get<Club[]>("/clubs")
       .then(res => {
@@ -63,7 +61,6 @@ const CreateClubUsuario: React.FC<Props> = ({ usuarioId, onSuccess, onCancel }) 
       await api.post(`/user-club`, { userId: usuarioId, clubId: selectedClubId });
       onSuccess();
     } catch (err: any) {
-      console.error("Error al agregar club:", err, err?.response?.data);
       setError(err?.response?.data?.message || "No se pudo agregar el club.");
     } finally {
       setProcessing(false);

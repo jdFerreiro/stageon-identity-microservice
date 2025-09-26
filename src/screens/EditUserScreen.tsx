@@ -41,15 +41,15 @@ const EditUserScreen: React.FC<EditUserScreenProps> = ({ userId, onSuccess, onCa
   const navigate = useNavigate();
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
+    const token = sessionStorage.getItem("token");
     if (isTokenExpired(token)) {
-      localStorage.removeItem("token");
+      sessionStorage.removeItem("token");
       navigate("/login");
       return;
     }
     const fetchData = async () => {
       try {
-        const token = localStorage.getItem("token");
+        const token = sessionStorage.getItem("token");
         const [rolesRes, userTypesRes, userRes] = await Promise.all([
           api.get("/roles", { headers: { Authorization: `Bearer ${token}` } }),
           api.get("/user-types", { headers: { Authorization: `Bearer ${token}` } }),
@@ -88,7 +88,7 @@ const EditUserScreen: React.FC<EditUserScreenProps> = ({ userId, onSuccess, onCa
     setProcessing(true);
     setError("");
     try {
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("token");
       await api.patch(
         `/users/${userId}`,
         {

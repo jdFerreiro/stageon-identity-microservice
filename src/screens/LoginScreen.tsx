@@ -26,7 +26,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
     try {
       const response = await api.post("/auth/login", { email, password });
       if (response.data && response.data.access_token) {
-        localStorage.setItem("token", response.data.access_token);
+        sessionStorage.setItem("token", response.data.access_token);
         // Notifica al padre si existe el callback
         if (onLoginSuccess) {
           onLoginSuccess(response.data);

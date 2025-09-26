@@ -33,9 +33,9 @@ const RegisterUserScreen: React.FC = () => {
   const [processing, setProcessing] = useState(false);
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
+    const token = sessionStorage.getItem("token");
     if (isTokenExpired(token)) {
-      localStorage.removeItem("token");
+      sessionStorage.removeItem("token");
       navigate("/login");
       return;
     }

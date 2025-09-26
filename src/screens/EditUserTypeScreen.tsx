@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { isTokenExpired } from "../lib/auth";
-  const navigate = useNavigate();
 import api from "../services/api";
 import {
   Box,
@@ -23,17 +22,18 @@ const EditUserTypeScreen: React.FC<EditUserTypeScreenProps> = ({ userTypeId, onS
   const [error, setError] = useState("");
   const [processing, setProcessing] = useState(false);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
+    const token = sessionStorage.getItem("token");
     if (isTokenExpired(token)) {
-      localStorage.removeItem("token");
+      sessionStorage.removeItem("token");
       navigate("/login");
       return;
     }
     const fetchUserType = async () => {
       try {
-        const token = localStorage.getItem("token");
+        const token = sessionStorage.getItem("token");
         const res = await api.get(`/user-types/${userTypeId}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -52,7 +52,7 @@ const EditUserTypeScreen: React.FC<EditUserTypeScreenProps> = ({ userTypeId, onS
     setProcessing(true);
     setError("");
     try {
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("token");
       await api.patch(
         `/user-types/${userTypeId}`,
         { name },

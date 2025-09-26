@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from "react-router-dom";
 import { isTokenExpired } from "../lib/auth";
-  const navigate = useNavigate();
 import api from '../services/api';
 import { Box, TextField, Button, Alert, CircularProgress } from '@mui/material';
 import SaveIcon from '@mui/icons-material/Save';
 import CancelIcon from '@mui/icons-material/Cancel';
 
 const CreateRoleScreen: React.FC = () => {
+  const navigate = useNavigate();
   const [name, setName] = useState('');
   const [errors, setErrors] = useState<{ name?: string; general?: string }>({});
   const [success, setSuccess] = useState('');
@@ -15,21 +15,21 @@ const CreateRoleScreen: React.FC = () => {
 
   const ROLES_ENDPOINT = import.meta.env.VITE_API_ROLES || '/roles';
   useEffect(() => {
-    const token = localStorage.getItem("token");
+    const token = sessionStorage.getItem("token");
     if (isTokenExpired(token)) {
       navigate("/login");
       return;
     }
     // Token expiration check
     const checkToken = async () => {
-      const token = localStorage.getItem('token');
+      const token = sessionStorage.getItem('token');
       try {
         await api.get(ROLES_ENDPOINT, {
           headers: { Authorization: `Bearer ${token}` }
         });
       } catch (err: any) {
         if (err?.response?.status === 401 || err?.response?.status === 403) {
-          localStorage.removeItem('token');
+          sessionStorage.removeItem('token');
           window.location.href = '/';
         }
       }
@@ -47,7 +47,7 @@ const CreateRoleScreen: React.FC = () => {
     }
     try {
       setProcessing(true);
-      const token = localStorage.getItem('token');
+      const token = sessionStorage.getItem('token');
       await api.post(ROLES_ENDPOINT, { name: name.trim() }, {
         headers: { Authorization: `Bearer ${token}` }
       });

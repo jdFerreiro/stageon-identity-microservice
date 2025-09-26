@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { isTokenExpired } from "../lib/auth";
-  const navigate = useNavigate();
 import api from "../services/api";
 import {
   Box,
@@ -26,6 +25,7 @@ type Role = { id: string; name: string };
 type UserType = { id: string; name: string };
 
 const CreateUserScreen: React.FC<CreateUserScreenProps> = ({ onSuccess, onCancel }) => {
+  const navigate = useNavigate();
   const [form, setForm] = useState({
     email: "",
     password: "",
@@ -40,14 +40,14 @@ const CreateUserScreen: React.FC<CreateUserScreenProps> = ({ onSuccess, onCancel
   const [userTypes, setUserTypes] = useState<UserType[]>([]);
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
+    const token = sessionStorage.getItem("token");
     if (isTokenExpired(token)) {
       navigate("/login");
       return;
     }
     const fetchRoles = async () => {
       try {
-        const token = localStorage.getItem("token");
+        const token = sessionStorage.getItem("token");
         const res = await api.get("/roles", {
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -58,7 +58,7 @@ const CreateUserScreen: React.FC<CreateUserScreenProps> = ({ onSuccess, onCancel
     };
     const fetchUserTypes = async () => {
       try {
-        const token = localStorage.getItem("token");
+        const token = sessionStorage.getItem("token");
         const res = await api.get("/user-types", {
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -86,7 +86,7 @@ const CreateUserScreen: React.FC<CreateUserScreenProps> = ({ onSuccess, onCancel
     setProcessing(true);
     setError("");
     try {
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("token");
       await api.post(
         "/users",
         {

@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { isTokenExpired } from "../lib/auth";
-  const navigate = useNavigate();
 import { Box, Typography, List, ListItem, ListItemButton, ListItemText, Divider, Paper } from "@mui/material";
 import EditUserScreen from "./EditUserScreen";
 import ClubesUsuarioList from "./ClubesUsuarioList";
@@ -19,11 +18,12 @@ function getUserIdFromToken(token: string): string | null {
 const PerfilScreen: React.FC = () => {
   const [selectedMenu, setSelectedMenu] = useState<"datos" | "clubes">("datos");
   const [usuarioId, setUsuarioId] = useState<string | null>(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
+    const token = sessionStorage.getItem("token");
     if (isTokenExpired(token)) {
-      localStorage.removeItem("token");
+      sessionStorage.removeItem("token");
       navigate("/login");
       return;
     }

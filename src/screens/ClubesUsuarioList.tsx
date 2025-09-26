@@ -45,7 +45,7 @@ const ClubesUsuarioList: React.FC<Props> = ({ usuarioId }) => {
 
   useEffect(() => {
     // Verificar expiración de token
-    const token = localStorage.getItem("token");
+    const token = sessionStorage.getItem("token");
     if (isTokenExpired(token)) {
       navigate("/login");
       return;

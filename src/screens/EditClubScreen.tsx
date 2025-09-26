@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { isTokenExpired } from "../lib/auth";
-  const navigate = useNavigate();
 import api from "../services/api";
 import {
   Box,
@@ -10,6 +9,7 @@ import {
   Typography,
   Alert,
   CircularProgress,
+  Paper,
 } from "@mui/material";
 
 type EditClubScreenProps = {
@@ -19,26 +19,30 @@ type EditClubScreenProps = {
 };
 
 const EditClubScreen: React.FC<EditClubScreenProps> = ({ clubId, onSuccess, onCancel }) => {
+  const navigate = useNavigate();
   const [form, setForm] = useState({
     name: "",
     description: "",
     address: "",
     phone: "",
     email: "",
+    logo: ""
   });
+  const [logoPreview, setLogoPreview] = useState<string>("");
+  const [logoError, setLogoError] = useState<string>("");
   const [error, setError] = useState("");
   const [processing, setProcessing] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
+    const token = sessionStorage.getItem("token");
     if (isTokenExpired(token)) {
       navigate("/login");
       return;
     }
     const fetchClub = async () => {
       try {
-        const token = localStorage.getItem("token");
+        const token = sessionStorage.getItem("token");
         const res = await api.get(`/clubs/${clubId}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -48,7 +52,9 @@ const EditClubScreen: React.FC<EditClubScreenProps> = ({ clubId, onSuccess, onCa
           address: res.data.address || "",
           phone: res.data.phone || "",
           email: res.data.email || "",
+          logo: res.data.logo || ""
         });
+        setLogoPreview(res.data.logo || "");
       } catch {
         setError("No se pudo cargar el club.");
       } finally {
@@ -59,11 +65,34 @@ const EditClubScreen: React.FC<EditClubScreenProps> = ({ clubId, onSuccess, onCa
   }, [clubId]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setForm((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    const { name, value, files } = e.target;
+    if (name === "logo" && files && files[0]) {
+      const file = files[0];
+      // Validar tipo
+      const allowedTypes = ["image/png", "image/jpeg", "image/jpg", "image/gif", "image/webp"];
+      if (!allowedTypes.includes(file.type)) {
+        setLogoError("Solo se permiten imágenes PNG, JPG, JPEG, GIF o WEBP.");
+        return;
+      }
+      // Validar tamaño (512 KB)
+      const maxSize = 512 * 1024;
+      if (file.size > maxSize) {
+        setLogoError("La imagen no debe superar los 512 KB.");
+        return;
+      }
+      setLogoError("");
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setForm((prev) => ({ ...prev, logo: reader.result as string }));
+        setLogoPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    } else {
+      setForm((prev) => ({
+        ...prev,
+        [name]: value,
+      }));
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -71,7 +100,7 @@ const EditClubScreen: React.FC<EditClubScreenProps> = ({ clubId, onSuccess, onCa
     setProcessing(true);
     setError("");
     try {
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("token");
       await api.patch(
         `/clubs/${clubId}`,
         { ...form },
@@ -97,65 +126,119 @@ const EditClubScreen: React.FC<EditClubScreenProps> = ({ clubId, onSuccess, onCa
   }
 
   return (
-    <Box component="form" onSubmit={handleSubmit} sx={{ mt: 2 }}>
-      <Typography variant="h6" mb={2}>
-        Editar Club
-      </Typography>
-      <TextField
-        label="Nombre"
-        name="name"
-        value={form.name}
-        onChange={handleChange}
-        fullWidth
-        required
-        margin="normal"
-      />
-      <TextField
-        label="Descripción"
-        name="description"
-        value={form.description}
-        onChange={handleChange}
-        fullWidth
-        margin="normal"
-      />
-      <TextField
-        label="Dirección"
-        name="address"
-        value={form.address}
-        onChange={handleChange}
-        fullWidth
-        margin="normal"
-      />
-      <TextField
-        label="Teléfono"
-        name="phone"
-        value={form.phone}
-        onChange={handleChange}
-        fullWidth
-        margin="normal"
-      />
-      <TextField
-        label="Email"
-        name="email"
-        value={form.email}
-        onChange={handleChange}
-        fullWidth
-        margin="normal"
-      />
-      {error && (
-        <Alert severity="error" sx={{ mt: 2 }}>
-          {error}
-        </Alert>
-      )}
-      <Box mt={3} display="flex" gap={2}>
-        <Button type="submit" variant="contained" color="primary" disabled={processing}>
-          {processing ? <CircularProgress size={24} /> : "Guardar"}
-        </Button>
-        <Button variant="outlined" onClick={onCancel} disabled={processing}>
-          Cancelar
-        </Button>
+    <Paper sx={{ p: 3, maxWidth: 900, mx: 'auto', mt: 2 }}>
+      <Box component="form" onSubmit={handleSubmit}>
+        <Typography variant="h6" mb={2}>
+          Editar Club
+        </Typography>
+        <Box display="flex" flexDirection={{ xs: 'column', md: 'row' }} gap={3}>
+          {/* Columna izquierda: 75% */}
+          <Box flex={{ xs: '1 1 100%', md: '0 1 75%' }} minWidth={0}>
+            <TextField
+              label="Nombre"
+              name="name"
+              value={form.name}
+              onChange={handleChange}
+              fullWidth
+              margin="normal"
+              required
+            />
+            <TextField
+              label="Descripción"
+              name="description"
+              value={form.description}
+              onChange={handleChange}
+              fullWidth
+              margin="normal"
+              multiline
+              minRows={3}
+            />
+            <TextField
+              label="Dirección"
+              name="address"
+              value={form.address}
+              onChange={handleChange}
+              fullWidth
+              margin="normal"
+              multiline
+              minRows={2}
+            />
+            <TextField
+              label="Teléfono"
+              name="phone"
+              value={form.phone}
+              onChange={handleChange}
+              fullWidth
+              margin="normal"
+            />
+            <TextField
+              label="Email"
+              name="email"
+              value={form.email}
+              onChange={handleChange}
+              fullWidth
+              margin="normal"
+              type="email"
+              autoComplete="email"
+            />
+          </Box>
+          {/* Columna derecha: 25% */}
+          <Box flex={{ xs: '1 1 100%', md: '0 1 25%' }} minWidth={0} display="flex" flexDirection="column" alignItems="center" justifyContent="center">
+            <Box width="100%" display="flex" flexDirection="column" alignItems="center" justifyContent="center" sx={{ height: { md: 260 }, minHeight: 220 }}>
+              {logoError && (
+                <Typography color="error" variant="body2" mt={1}>{logoError}</Typography>
+              )}
+              {(logoPreview || form.logo) && !logoError ? (
+                <Box width="100%" display="flex" justifyContent="center" alignItems="center" sx={{ height: 180 }}>
+                  <img
+                    src={logoPreview || form.logo}
+                    alt="Logo preview"
+                    style={{
+                      maxWidth: '100%',
+                      maxHeight: 180,
+                      width: '100%',
+                      height: '100%',
+                      borderRadius: 8,
+                      border: '1px solid #ccc',
+                      objectFit: 'contain',
+                      display: 'block',
+                      margin: '0 auto'
+                    }}
+                  />
+                </Box>
+              ) : (
+                <Box width="100%" height={180} display="flex" alignItems="center" justifyContent="center" sx={{ border: '1px dashed #ccc', borderRadius: 2, background: '#fafafa' }}>
+                  <Typography variant="caption" color="textSecondary">Sin logo</Typography>
+                </Box>
+              )}
+              <Button variant="outlined" component="label" sx={{ mt: 2, width: '100%' }}>
+                Cargar Logo
+                <input
+                  type="file"
+                  accept="image/png,image/jpeg,image/jpg,image/gif,image/webp"
+                  name="logo"
+                  hidden
+                  onChange={handleChange}
+                />
+              </Button>
+            </Box>
+          </Box>
+        </Box>
+        {error && (
+          <Alert severity="error" sx={{ mt: 2 }}>
+            {error}
+          </Alert>
+        )}
+        <Box mt={3} display="flex" gap={2}>
+          <Button type="submit" variant="contained" color="primary" disabled={processing}>
+            {processing ? <CircularProgress size={24} /> : "Guardar"}
+          </Button>
+          <Button variant="outlined" onClick={onCancel} disabled={processing}>
+            Cancelar
+          </Button>
+        </Box>
       </Box>
-    </Box>
+    </Paper>
   );
 };
 

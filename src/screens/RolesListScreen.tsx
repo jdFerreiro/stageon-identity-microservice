@@ -53,7 +53,7 @@ const RolesListScreen: React.FC = () => {
     if (!deleteRoleId) return;
     setProcessing(true);
     try {
-      const token = localStorage.getItem('token');
+      const token = sessionStorage.getItem('token');
       await api.delete(`${ROLES_ENDPOINT}/${deleteRoleId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -73,14 +73,14 @@ const RolesListScreen: React.FC = () => {
 
   useEffect(() => {
     // Token expiration check
-    const token = localStorage.getItem('token');
+    const token = sessionStorage.getItem('token');
     if (isTokenExpired(token)) {
-      localStorage.removeItem('token');
+      sessionStorage.removeItem('token');
       navigate('/login');
       return;
     }
     const fetchRoles = async () => {
-      const token = localStorage.getItem('token');
+      const token = sessionStorage.getItem('token');
       const response = await api.get(ROLES_ENDPOINT, {
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -90,14 +90,28 @@ const RolesListScreen: React.FC = () => {
   }, []);
 
   const columns: GridColDef[] = [
-    { field: 'name', headerName: 'Nombre', width: 200 },
-    { field: 'isActive', headerName: 'Estado', width: 120, renderCell: (params) => params.value ? 'Activo' : 'Inactivo' },
+    {
+      field: 'name',
+      headerName: 'Nombre',
+      flex: 1,
+      minWidth: 200,
+    },
+    {
+      field: 'isActive',
+      headerName: 'Estado',
+      width: 120,
+      renderCell: (params) => params.value ? 'Activo' : 'Inactivo',
+      align: 'center',
+      headerAlign: 'center',
+    },
     {
       field: 'actions',
       headerName: 'Acciones',
       width: 180,
       sortable: false,
       filterable: false,
+      align: 'center',
+      headerAlign: 'center',
       renderCell: (params) => (
         <Stack direction="row" spacing={1} justifyContent="center" alignItems="center" width="100%">
           <Tooltip title="Editar">
@@ -165,8 +179,8 @@ const RolesListScreen: React.FC = () => {
           }}
           pageSizeOptions={[10, 20, 50]}
           sx={{
-            width: '800px',
-            minWidth: '800px',
+            width: '100%',
+            minWidth: 400,
             minHeight: '60vh',
             maxHeight: '100%',
             background: '#fff',
@@ -190,12 +204,13 @@ const RolesListScreen: React.FC = () => {
       <Dialog
         open={openCreateDialog}
         onClose={() => setOpenCreateDialog(false)}
-        maxWidth="md"
+        maxWidth={false}
         fullWidth
         disableEscapeKeyDown
         sx={{
           '& .MuiDialog-paper': {
-            width: '50vw',
+            width: '100%',
+            maxWidth: '1000px',
             height: '80vh',
             margin: 'auto',
             display: 'flex',
@@ -204,8 +219,8 @@ const RolesListScreen: React.FC = () => {
           },
         }}
       >
-        <DialogTitle>Crear Rol</DialogTitle>
-        <DialogContent sx={{ width: '90%', height: '100%' }}>
+        <DialogTitle sx={{ width: '100%' }}>Crear Rol</DialogTitle>
+        <DialogContent sx={{ width: '100%', height: '100%' }}>
           <CreateRoleScreen />
         </DialogContent>
       </Dialog>
@@ -214,12 +229,13 @@ const RolesListScreen: React.FC = () => {
       <Dialog
         open={openEditDialog}
         onClose={() => setOpenEditDialog(false)}
-        maxWidth="md"
+        maxWidth={false}
         fullWidth
         disableEscapeKeyDown
         sx={{
           '& .MuiDialog-paper': {
-            width: '50vw',
+            width: '100%',
+            maxWidth: '1000px',
             height: '80vh',
             margin: 'auto',
             display: 'flex',
@@ -228,8 +244,8 @@ const RolesListScreen: React.FC = () => {
           },
         }}
       >
-        <DialogTitle>Editar Rol</DialogTitle>
-        <DialogContent sx={{ width: '90%', height: '100%' }}>
+        <DialogTitle sx={{ width: '100%' }}>Editar Rol</DialogTitle>
+        <DialogContent sx={{ width: '100%', height: '100%' }}>
           {editRoleId && <EditRoleScreen id={editRoleId} />}
         </DialogContent>
       </Dialog>

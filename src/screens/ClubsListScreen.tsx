@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { isTokenExpired } from "../lib/auth";
-  const navigate = useNavigate();
 import api from "../services/api";
 import {
   Typography,
@@ -12,12 +11,14 @@ import {
   Alert,
   Paper,
   IconButton,
-  Button,
   Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
   Stack,
+  Tooltip,
+  Button,
+  Box,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import EditIcon from "@mui/icons-material/Edit";
@@ -32,6 +33,7 @@ type Club = {
   address?: string;
   phone?: string;
   email?: string;
+  logo?: string;
 };
 
 const ClubsListScreen: React.FC = () => {
@@ -44,12 +46,13 @@ const ClubsListScreen: React.FC = () => {
   const [saving, setSaving] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const navigate = useNavigate();
 
   const fetchClubs = async () => {
     setLoading(true);
     setError("");
     try {
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("token");
       const res = await api.get("/clubs", {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -62,7 +65,7 @@ const ClubsListScreen: React.FC = () => {
   };
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
+    const token = sessionStorage.getItem("token");
     if (isTokenExpired(token)) {
       navigate("/login");
       return;
@@ -106,7 +109,7 @@ const ClubsListScreen: React.FC = () => {
     if (!deleteId) return;
     setSaving(true);
     try {
-      const token = localStorage.getItem("token");
+      const token = sessionStorage.getItem("token");
       await api.delete(`/clubs/${deleteId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -120,57 +123,78 @@ const ClubsListScreen: React.FC = () => {
   };
 
   return (
-    <Paper sx={{ p: 4, maxWidth: 900, mx: "auto", mt: 4, overflowX: 'auto' }}>
-      <Stack direction="row" justifyContent="space-between" alignItems="center" mb={2}>
-        <Typography variant="h5">Lista de Clubes</Typography>
-        <Button
-          variant="contained"
-          color="primary"
-          startIcon={<AddIcon />}
-          onClick={handleOpenCreate}
-        >
-          Crear Club
-        </Button>
+    <Box width="100vw" minHeight="100vh" display="flex" justifyContent="center" alignItems="flex-start">
+      <Paper sx={{ p: 4, maxWidth: 900, width: '100%', mt: 4, overflowX: 'auto', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+      <Stack direction="row" justifyContent="space-between" alignItems="center" mb={2} width="100%">
+        <Typography variant="h5" sx={{ flex: 1, textAlign: 'center' }}>Lista de Clubes</Typography>
+        <Tooltip title="Crear Club">
+          <IconButton color="primary" onClick={handleOpenCreate}>
+            <AddIcon />
+          </IconButton>
+        </Tooltip>
       </Stack>
       {loading && <CircularProgress />}
       {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
-      <List sx={{ minWidth: 800 }}>
-        {clubs.map((club) => (
-          <ListItem key={club.id} alignItems="flex-start"
-            secondaryAction={
-              <>
-                <IconButton edge="end" aria-label="edit" onClick={() => handleOpenEdit(club.id)}>
-                  <EditIcon />
-                </IconButton>
-                <IconButton edge="end" aria-label="delete" onClick={() => handleOpenConfirm(club.id)}>
-                  <DeleteIcon />
-                </IconButton>
-              </>
-            }
-            sx={{ minWidth: 800 }}
-          >
-            <ListItemText
-              primary={<span style={{ width: '30%', display: 'inline-block' }}>{club.name}</span>}
-              secondary={
-                <span style={{ width: '60%', display: 'inline-block' }}>
-                  {club.description && <span>{club.description}<br /></span>}
-                  {club.address && <span>Dirección: {club.address}<br /></span>}
-                  {club.phone && <span>Teléfono: {club.phone}<br /></span>}
-                  {club.email && <span>Email: {club.email}</span>}
-                </span>
+      <Box width="100%" display="flex" justifyContent="center">
+        <List sx={{ width: 800, maxWidth: '100%' }}>
+          {clubs.map((club) => (
+            <ListItem key={club.id} alignItems="flex-start"
+              secondaryAction={
+                <>
+                  <IconButton edge="end" aria-label="edit" onClick={() => handleOpenEdit(club.id)}>
+                    <EditIcon />
+                  </IconButton>
+                  <IconButton edge="end" aria-label="delete" onClick={() => handleOpenConfirm(club.id)}>
+                    <DeleteIcon />
+                  </IconButton>
+                </>
               }
-            />
-          </ListItem>
-        ))}
-      </List>
+              sx={{ justifyContent: 'center' }}
+            >
+              <Box display="flex" alignItems="stretch" width="100%">
+                {club.logo ? (
+                  <Box mr={2} minWidth={90} display="flex" alignItems="stretch">
+                    <img
+                      src={club.logo}
+                      alt={club.name + ' logo'}
+                      style={{
+                        width: 90,
+                        height: '100%',
+                        objectFit: 'cover',
+                        borderRadius: 8,
+                        border: '1px solid #ccc',
+                        background: '#fff',
+                        display: 'block',
+                        alignSelf: 'stretch',
+                        minHeight: 80
+                      }}
+                    />
+                  </Box>
+                ) : null}
+                <ListItemText
+                  primary={<span style={{ width: '30%', display: 'inline-block' }}>{club.name}</span>}
+                  secondary={
+                    <span style={{ width: '60%', display: 'inline-block' }}>
+                      {club.description && <span>{club.description}<br /></span>}
+                      {club.address && <span>Dirección: {club.address}<br /></span>}
+                      {club.phone && <span>Teléfono: {club.phone}<br /></span>}
+                      {club.email && <span>Email: {club.email}</span>}
+                    </span>
+                  }
+                />
+              </Box>
+            </ListItem>
+          ))}
+        </List>
+      </Box>
       {/* Modal para crear/editar */}
-      <Dialog open={modalOpen} onClose={handleCloseModal} maxWidth="sm" fullWidth>
+  <Dialog open={modalOpen} onClose={handleCloseModal} maxWidth="md" fullWidth>
         <DialogTitle>
           {modalMode === "create" ? "Crear Club" : "Editar Club"}
         </DialogTitle>
         <DialogContent>
           {modalMode === "create" ? (
-            <CreateClubScreen onSuccess={handleSuccess} onCancel={handleCloseModal} />
+            <CreateClubScreen onSuccess={handleSuccess} onCancel={handleCloseModal} clubs={clubs} />
           ) : (
             selectedClubId && (
               <EditClubScreen clubId={selectedClubId} onSuccess={handleSuccess} onCancel={handleCloseModal} />
@@ -192,6 +216,7 @@ const ClubsListScreen: React.FC = () => {
         </DialogActions>
       </Dialog>
     </Paper>
+  </Box>
   );
 };
 
