@@ -5,7 +5,10 @@ import { isTokenExpired } from "../lib/auth";
 import api from "../services/api";
 import CreateClubUsuario from './CreateClubUsuario';
 import DeleteIcon from '@mui/icons-material/Delete';
+import EditIcon from '@mui/icons-material/Edit';
+import EditClubUsuario from './EditClubUsuario';
 import Tooltip from '@mui/material/Tooltip';
+
 
 interface Club {
   id: string;
@@ -15,6 +18,12 @@ interface Club {
   phone?: string;
   logo?: string;
   email?: string;
+}
+
+interface UserClub {
+  id: string; // id de la relación
+  clubId: string;
+  memberNumber: string;
 }
 
 interface User {
@@ -28,19 +37,40 @@ interface Props {
 
 const ClubesUsuarioList: React.FC<Props> = ({ usuarioId }) => {
   const navigate = useNavigate();
-  const [clubes, setClubes] = useState<Club[]>([]);
+  const [clubes, setClubes] = useState<(Club & { memberNumber?: string; userClubId?: string })[]>([]);
   const [loading, setLoading] = useState(true);
   const [openAgregar, setOpenAgregar] = useState(false);
+  const [editClub, setEditClub] = useState<{ clubId: string; memberNumber: string; clubName: string; userClubId?: string } | null>(null);
 
-  const fetchClubes = () => {
-    api.get<User>(`/users/${usuarioId}`)
-      .then(res => {
-        setClubes(res.data.clubs || []);
-        setLoading(false);
-      })
-      .catch(() => {
-        setLoading(false);
+
+  const fetchClubes = async () => {
+    try {
+      setLoading(true);
+      // Get clubs info
+      const userRes = await api.get<User>(`/users/${usuarioId}`);
+      const clubs: Club[] = userRes.data.clubs || [];
+      // Get user-club associations (for memberNumber)
+      const userClubRes = await api.get<UserClub[]>(`/user-club/user/${usuarioId}`);
+      const userClubs: UserClub[] = userClubRes.data || [];
+      // Merge memberNumber and userClubId into clubs (robust to multiple relations and backend field names)
+      const clubsWithMember = clubs.map(club => {
+        const found = Array.isArray(userClubs)
+          ? userClubs.find((uc: any) => uc.clubId === club.id)
+          : undefined;
+        // Cast a any para acceder a posibles campos alternativos
+        const anyFound = found as any;
+        return {
+          ...club,
+          memberNumber: found?.memberNumber || '',
+          userClubId: found ? (found.id || anyFound?._id || anyFound?.userClubId || anyFound?.user_club_id) : undefined
+        };
       });
+      setClubes(clubsWithMember);
+    } catch {
+      setClubes([]);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -61,6 +91,7 @@ const ClubesUsuarioList: React.FC<Props> = ({ usuarioId }) => {
 
   if (loading) return <div>Cargando clubes...</div>;
 
+  // ...
   return (
     <div style={{ overflowX: 'auto', width: '100%' }}>
       <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 16 }}>
@@ -85,8 +116,24 @@ const ClubesUsuarioList: React.FC<Props> = ({ usuarioId }) => {
               padding: '12px 0',
             }}
           >
-            <strong style={{ width: '30%' }}>{club.name}</strong>
+            <strong style={{ width: '30%' }}>
+              {club.name}
+              {club.memberNumber && (
+                <span style={{ color: '#888', fontWeight: 'normal', marginLeft: 8, fontSize: 14 }}>
+                  (Nº socio: {club.memberNumber})
+                </span>
+              )}
+            </strong>
             {club.description && <span style={{ width: '40%' }}>{club.description}</span>}
+            <IconButton
+              aria-label="Editar club"
+              color="primary"
+              size="small"
+              onClick={() => setEditClub({ clubId: club.id, memberNumber: club.memberNumber || '', clubName: club.name, userClubId: club.userClubId })}
+              sx={{ ml: 1 }}
+            >
+              <EditIcon fontSize="small" />
+            </IconButton>
             <IconButton
               aria-label="Eliminar club"
               color="error"
@@ -98,6 +145,29 @@ const ClubesUsuarioList: React.FC<Props> = ({ usuarioId }) => {
             </IconButton>
           </li>
         ))}
+      {/* Modal de edición de número de socio */}
+      <Dialog open={!!editClub} onClose={() => setEditClub(null)} maxWidth="xs" fullWidth>
+        <DialogTitle>Editar número de socio</DialogTitle>
+        <DialogContent>
+          {editClub ? (
+            <EditClubUsuario
+              clubId={editClub.clubId}
+              clubName={editClub.clubName}
+              initialMemberNumber={editClub.memberNumber}
+              userClubId={editClub.userClubId}
+              onSuccess={() => {
+                setEditClub(null);
+                setLoading(true);
+                fetchClubes();
+              }}
+              onCancel={() => setEditClub(null)}
+            />
+          ) : null}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setEditClub(null)}>Cerrar</Button>
+        </DialogActions>
+      </Dialog>
       </ul>
       <Dialog open={openAgregar} onClose={() => setOpenAgregar(false)} maxWidth="sm" fullWidth>
         <DialogTitle>Agregar club al usuario</DialogTitle>

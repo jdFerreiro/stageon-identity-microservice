@@ -279,7 +279,7 @@ const UsersListScreen: React.FC = () => {
       >
         <DialogTitle>Editar Usuario</DialogTitle>
         <DialogContent sx={{ width: '90%', height: '100%' }}>
-          {editUserId && <EditUserScreen userId={editUserId} onSuccess={() => { setOpenEdit(false); fetchUsers(); }} onCancel={() => setOpenEdit(false)} />}
+          {editUserId && <EditUserScreen userId={editUserId} onSuccess={() => { setOpenEdit(false); fetchUsers(); }} onCancel={() => setOpenEdit(false)} source="list" />}
         </DialogContent>
       </Dialog>
 

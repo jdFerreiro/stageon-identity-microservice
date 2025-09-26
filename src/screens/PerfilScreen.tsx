@@ -9,7 +9,8 @@ import ClubesUsuarioList from "./ClubesUsuarioList";
 function getUserIdFromToken(token: string): string | null {
   try {
     const payload = JSON.parse(atob(token.split('.')[1]));
-    return payload.id || payload.userId || null;
+    console.log(payload);
+    return payload.sub || null;
   } catch {
     return null;
   }
@@ -29,6 +30,7 @@ const PerfilScreen: React.FC = () => {
     }
     if (token) {
       const id = getUserIdFromToken(token);
+
       setUsuarioId(id);
     }
   }, [sessionStorage.getItem("token")]);
@@ -62,7 +64,7 @@ const PerfilScreen: React.FC = () => {
       <Box flex={1} p={4}>
         {usuarioId ? (
           selectedMenu === "datos" ? (
-            <EditUserScreen userId={usuarioId} onSuccess={() => {}} onCancel={() => {}} />
+            <EditUserScreen userId={usuarioId} onSuccess={() => {}} onCancel={() => {}} source="perfil" />
           ) : (
             <ClubesUsuarioList usuarioId={usuarioId} />
           )

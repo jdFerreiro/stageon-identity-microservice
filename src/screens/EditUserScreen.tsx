@@ -20,12 +20,13 @@ type EditUserScreenProps = {
   userId: string;
   onSuccess: () => void;
   onCancel: () => void;
+  source?: 'perfil' | 'list';
 };
 
 type Role = { id: string; name: string };
 type UserType = { id: string; name: string };
 
-const EditUserScreen: React.FC<EditUserScreenProps> = ({ userId, onSuccess, onCancel }) => {
+const EditUserScreen: React.FC<EditUserScreenProps> = ({ userId, onSuccess, onCancel, source = 'list' }) => {
   const [form, setForm] = useState({
     email: "",
     firstName: "",
@@ -61,8 +62,8 @@ const EditUserScreen: React.FC<EditUserScreenProps> = ({ userId, onSuccess, onCa
           email: userRes.data.email || "",
           firstName: userRes.data.firstName || "",
           lastName: userRes.data.lastName || "",
-          roleId: userRes.data.roleId || "",
-          userTypeId: userRes.data.userTypeId || "",
+          roleId: userRes.data.role?.id || "",
+          userTypeId: userRes.data.userType?.id || "",
         });
       } catch {
         setError("No se pudo cargar la información del usuario.");
@@ -151,38 +152,42 @@ const EditUserScreen: React.FC<EditUserScreenProps> = ({ userId, onSuccess, onCa
         required
         margin="normal"
       />
-      <FormControl fullWidth margin="normal" required>
-        <InputLabel id="role-label">Rol</InputLabel>
-        <Select
-          labelId="role-label"
-          name="roleId"
-          value={form.roleId}
-          label="Rol"
-          onChange={handleChange}
-        >
-          {roles.map((role) => (
-            <MenuItem key={role.id} value={role.id}>
-              {role.name}
-            </MenuItem>
-          ))}
-        </Select>
-      </FormControl>
-      <FormControl fullWidth margin="normal" required>
-        <InputLabel id="usertype-label">Tipo de Usuario</InputLabel>
-        <Select
-          labelId="usertype-label"
-          name="userTypeId"
-          value={form.userTypeId}
-          label="Tipo de Usuario"
-          onChange={handleChange}
-        >
-          {userTypes.map((type) => (
-            <MenuItem key={type.id} value={type.id}>
-              {type.name}
-            </MenuItem>
-          ))}
-        </Select>
-      </FormControl>
+      {source !== 'perfil' && (
+        <>
+          <FormControl fullWidth margin="normal" required>
+            <InputLabel id="role-label">Rol</InputLabel>
+            <Select
+              labelId="role-label"
+              name="roleId"
+              value={form.roleId}
+              label="Rol"
+              onChange={handleChange}
+            >
+              {roles.map((role) => (
+                <MenuItem key={role.id} value={role.id}>
+                  {role.name}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+          <FormControl fullWidth margin="normal" required>
+            <InputLabel id="usertype-label">Tipo de Usuario</InputLabel>
+            <Select
+              labelId="usertype-label"
+              name="userTypeId"
+              value={form.userTypeId}
+              label="Tipo de Usuario"
+              onChange={handleChange}
+            >
+              {userTypes.map((type) => (
+                <MenuItem key={type.id} value={type.id}>
+                  {type.name}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </>
+      )}
       {error && (
         <Alert severity="error" sx={{ mt: 2 }}>
           {error}
