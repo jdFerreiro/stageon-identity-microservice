@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { isTokenExpired } from "../lib/auth";
+// import { useNavigate } from "react-router-dom";
 import api from "../services/api";
 import {
   Typography,
@@ -9,13 +8,11 @@ import {
   ListItemText,
   CircularProgress,
   Alert,
-  Paper,
   IconButton,
   Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
-  Stack,
   Tooltip,
   Button,
   Box,
@@ -46,54 +43,6 @@ const ClubsListScreen: React.FC = () => {
   const [saving, setSaving] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
-  const navigate = useNavigate();
-
-  const fetchClubs = async () => {
-    setLoading(true);
-    setError("");
-    try {
-      const token = sessionStorage.getItem("token");
-      const res = await api.get("/clubs", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setClubs(res.data);
-    } catch {
-      setError("No se pudieron cargar los clubes.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    const token = sessionStorage.getItem("token");
-    if (isTokenExpired(token)) {
-      navigate("/login");
-      return;
-    }
-    fetchClubs();
-  }, []);
-
-  const handleOpenCreate = () => {
-    setModalMode("create");
-    setSelectedClubId(null);
-    setModalOpen(true);
-  };
-
-  const handleOpenEdit = (clubId: string) => {
-    setModalMode("edit");
-    setSelectedClubId(clubId);
-    setModalOpen(true);
-  };
-
-  const handleCloseModal = () => {
-    setModalOpen(false);
-    setSelectedClubId(null);
-  };
-
-  const handleSuccess = () => {
-    handleCloseModal();
-    fetchClubs();
-  };
 
   const handleOpenConfirm = (id: string) => {
     setDeleteId(id);
@@ -122,78 +71,158 @@ const ClubsListScreen: React.FC = () => {
     }
   };
 
+  const handleCloseModal = () => {
+    setModalOpen(false);
+    setSelectedClubId(null);
+  };
+
+  const handleSuccess = () => {
+    handleCloseModal();
+    fetchClubs();
+  };
+
+  const fetchClubs = async () => {
+    setLoading(true);
+    setError("");
+    try {
+      const token = sessionStorage.getItem("token");
+      const res = await api.get("/clubs", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setClubs(res.data);
+    } catch {
+      setError("No se pudieron cargar los clubes.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchClubs();
+  }, []);
+
+  const handleOpenCreate = () => {
+    setModalMode("create");
+    setSelectedClubId(null);
+    setModalOpen(true);
+  };
+
+  const handleOpenEdit = (clubId: string) => {
+    setModalMode("edit");
+    setSelectedClubId(clubId);
+    setModalOpen(true);
+  };
+
   return (
-    <Box width="100vw" minHeight="100vh" display="flex" justifyContent="center" alignItems="flex-start">
-      <Paper sx={{ p: 4, maxWidth: 900, width: '100%', mt: 4, overflowX: 'auto', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-      <Stack direction="row" justifyContent="space-between" alignItems="center" mb={2} width="100%">
-        <Typography variant="h5" sx={{ flex: 1, textAlign: 'center' }}>Lista de Clubes</Typography>
+    <Box
+      width="100%"
+      minHeight="100vh"
+      bgcolor="#f5f5f5"
+      p={{ xs: 1, sm: 2, md: 3 }}
+      display="flex"
+      flexDirection="column"
+      alignItems="center"
+      sx={{ boxSizing: 'border-box', position: 'relative', overflow: 'visible' }}
+    >
+      <Box width="100%" maxWidth={1000} mx="auto" mb={3} display="flex" justifyContent="space-between" alignItems="center" sx={{ boxSizing: 'border-box' }}>
+        <Typography variant="h4">Lista de Clubes</Typography>
         <Tooltip title="Crear Club">
-          <IconButton color="primary" onClick={handleOpenCreate}>
-            <AddIcon />
+          <IconButton color="primary" onClick={handleOpenCreate} size="large">
+            <AddIcon fontSize="inherit" />
           </IconButton>
         </Tooltip>
-      </Stack>
+      </Box>
       {loading && <CircularProgress />}
       {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
-      <Box width="100%" display="flex" justifyContent="center">
-        <List sx={{ width: 800, maxWidth: '100%' }}>
-          {clubs.map((club) => (
-            <ListItem key={club.id} alignItems="flex-start"
-              secondaryAction={
-                <>
-                  <IconButton edge="end" aria-label="edit" onClick={() => handleOpenEdit(club.id)}>
-                    <EditIcon />
-                  </IconButton>
-                  <IconButton edge="end" aria-label="delete" onClick={() => handleOpenConfirm(club.id)}>
-                    <DeleteIcon />
-                  </IconButton>
-                </>
-              }
-              sx={{ justifyContent: 'center' }}
-            >
-              <Box display="flex" alignItems="stretch" width="100%">
-                {club.logo ? (
-                  <Box mr={2} minWidth={90} display="flex" alignItems="stretch">
-                    <img
-                      src={club.logo}
-                      alt={club.name + ' logo'}
-                      style={{
-                        width: 90,
-                        height: '100%',
-                        objectFit: 'cover',
-                        borderRadius: 8,
-                        border: '1px solid #ccc',
-                        background: '#fff',
-                        display: 'block',
-                        alignSelf: 'stretch',
-                        minHeight: 80
-                      }}
-                    />
+      <Box width="100%" maxWidth={1000} mx="auto" flex={1} sx={{
+        boxSizing: 'border-box',
+        overflow: 'visible',
+        minHeight: 300,
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'flex-start',
+      }}>
+        <List sx={{ width: '100%', maxWidth: 1000 }}>
+          {clubs.map((club) => {
+            return (
+              <ListItem
+                key={club.id}
+                alignItems="flex-start"
+                secondaryAction={
+                  <Box display="flex" gap={1}>
+                    <Tooltip title="Editar">
+                      <IconButton edge="end" color="primary" aria-label="edit" onClick={() => handleOpenEdit(club.id)} size="small">
+                        <EditIcon fontSize="inherit" />
+                      </IconButton>
+                    </Tooltip>
+                    <Tooltip title="Eliminar">
+                      <IconButton edge="end" color="error" aria-label="delete" onClick={() => handleOpenConfirm(club.id)} size="small">
+                        <DeleteIcon fontSize="inherit" />
+                      </IconButton>
+                    </Tooltip>
                   </Box>
-                ) : null}
-                <ListItemText
-                  primary={<span style={{ width: '30%', display: 'inline-block' }}>{club.name}</span>}
-                  secondary={
-                    <span style={{ width: '60%', display: 'inline-block' }}>
-                      {club.description && <span>{club.description}<br /></span>}
-                      {club.address && <span>Dirección: {club.address}<br /></span>}
-                      {club.phone && <span>Teléfono: {club.phone}<br /></span>}
-                      {club.email && <span>Email: {club.email}</span>}
-                    </span>
-                  }
-                />
-              </Box>
-            </ListItem>
-          ))}
+                }
+                sx={{ justifyContent: 'center', alignItems: 'stretch' }}
+              >
+                <Box display="flex" alignItems="stretch" width="100%">
+                  {club.logo && (
+                    <Box mr={2} minWidth={90} display="flex" alignItems="stretch">
+                      <img
+                        src={club.logo}
+                        alt={club.name + ' logo'}
+                        style={{
+                          width: 90,
+                          height: '100%',
+                          objectFit: 'cover',
+                          borderRadius: 8,
+                          border: '1px solid #ccc',
+                          background: '#fff',
+                          display: 'block',
+                          alignSelf: 'stretch',
+                          minHeight: 80
+                        }}
+                      />
+                    </Box>
+                  )}
+                  <ListItemText
+                    primary={<span style={{ width: '30%', display: 'inline-block' }}>{club.name}</span>}
+                    secondary={
+                      <span style={{ width: '60%', display: 'inline-block' }}>
+                        {club.description && <span>{club.description}<br /></span>}
+                        {club.address && <span>Dirección: {club.address}<br /></span>}
+                        {club.phone && <span>Teléfono: {club.phone}<br /></span>}
+                        {club.email && <span>Email: {club.email}</span>}
+                      </span>
+                    }
+                  />
+                </Box>
+              </ListItem>
+            );
+          })}
         </List>
       </Box>
       {/* Modal para crear/editar */}
-  <Dialog open={modalOpen} onClose={handleCloseModal} maxWidth="md" fullWidth>
-        <DialogTitle>
-          {modalMode === "create" ? "Crear Club" : "Editar Club"}
-        </DialogTitle>
-        <DialogContent>
-          {modalMode === "create" ? (
+      <Dialog
+        open={modalOpen}
+        onClose={handleCloseModal}
+        maxWidth={false}
+        fullWidth
+        disableEscapeKeyDown
+        sx={{
+          '& .MuiDialog-paper': {
+            width: { xs: '100vw', sm: '90vw' },
+            maxWidth: 600,
+            height: { xs: '100vh', sm: '90vh' },
+            margin: 'auto',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          },
+        }}
+      >
+        <DialogTitle>{modalMode === 'create' ? 'Crear Club' : 'Editar Club'}</DialogTitle>
+        <DialogContent sx={{ width: '100%', height: '100%' }}>
+          {modalMode === 'create' ? (
             <CreateClubScreen onSuccess={handleSuccess} onCancel={handleCloseModal} clubs={clubs} />
           ) : (
             selectedClubId && (
@@ -203,7 +232,7 @@ const ClubsListScreen: React.FC = () => {
         </DialogContent>
       </Dialog>
       {/* Diálogo de confirmación para eliminar */}
-      <Dialog open={confirmOpen} onClose={handleCloseConfirm}>
+      <Dialog open={confirmOpen} onClose={handleCloseConfirm} maxWidth="xs" fullWidth>
         <DialogTitle>¿Eliminar club?</DialogTitle>
         <DialogContent>
           <Typography>¿Está seguro que desea eliminar este club?</Typography>
@@ -211,12 +240,11 @@ const ClubsListScreen: React.FC = () => {
         <DialogActions>
           <Button onClick={handleCloseConfirm} disabled={saving}>Cancelar</Button>
           <Button onClick={handleDelete} color="error" variant="contained" disabled={saving}>
-            {saving ? "Eliminando..." : "Eliminar"}
+            {saving ? 'Eliminando...' : 'Eliminar'}
           </Button>
         </DialogActions>
       </Dialog>
-    </Paper>
-  </Box>
+    </Box>
   );
 };
 

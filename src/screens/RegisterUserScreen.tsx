@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { isTokenExpired } from "../lib/auth";
+// import { isTokenExpired } from "../lib/auth";
 import { Box, TextField, Button, Typography, Alert, CircularProgress, FormControl, InputLabel, Select, MenuItem } from "@mui/material";
 import api from "../services/api";
 import type { SelectChangeEvent } from "@mui/material";
@@ -16,7 +15,6 @@ interface Club {
 }
 
 const RegisterUserScreen: React.FC = () => {
-  const navigate = useNavigate();
   const [form, setForm] = useState({
     email: "",
     password: "",
@@ -33,12 +31,6 @@ const RegisterUserScreen: React.FC = () => {
   const [processing, setProcessing] = useState(false);
 
   useEffect(() => {
-    const token = sessionStorage.getItem("token");
-    if (isTokenExpired(token)) {
-      sessionStorage.removeItem("token");
-      navigate("/login");
-      return;
-    }
     api.get("/user-types")
       .then(res => setUserTypes(res.data))
       .catch(() => setUserTypes([]));

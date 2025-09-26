@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { isTokenExpired } from "../lib/auth";
+// import { useNavigate } from "react-router-dom";
 import api from "../services/api";
 import {
   Box,
@@ -25,7 +24,6 @@ type Role = { id: string; name: string };
 type UserType = { id: string; name: string };
 
 const CreateUserScreen: React.FC<CreateUserScreenProps> = ({ onSuccess, onCancel }) => {
-  const navigate = useNavigate();
   const [form, setForm] = useState({
     email: "",
     password: "",
@@ -40,11 +38,6 @@ const CreateUserScreen: React.FC<CreateUserScreenProps> = ({ onSuccess, onCancel
   const [userTypes, setUserTypes] = useState<UserType[]>([]);
 
   useEffect(() => {
-    const token = sessionStorage.getItem("token");
-    if (isTokenExpired(token)) {
-      navigate("/login");
-      return;
-    }
     const fetchRoles = async () => {
       try {
         const token = sessionStorage.getItem("token");

@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { isTokenExpired } from "../lib/auth";
+// import { useNavigate } from "react-router-dom";
 import { Box, Button, MenuItem, Select, InputLabel, FormControl, CircularProgress, Alert, TextField } from "@mui/material";
 import api from "../services/api";
 
@@ -16,7 +15,6 @@ interface Props {
 }
 
 const CreateClubUsuario: React.FC<Props> = ({ usuarioId, onSuccess, onCancel }) => {
-  const navigate = useNavigate();
   const [clubes, setClubes] = useState<Club[]>([]);
   const [selectedClubId, setSelectedClubId] = useState("");
   const [loading, setLoading] = useState(true);
@@ -26,12 +24,6 @@ const CreateClubUsuario: React.FC<Props> = ({ usuarioId, onSuccess, onCancel }) 
   const [numeroSocio, setNumeroSocio] = useState("");
 
   useEffect(() => {
-    // Verificar expiración de token
-    const token = sessionStorage.getItem("token");
-    if (isTokenExpired(token)) {
-      navigate("/login");
-      return;
-    }
     // Obtener todos los clubes
     api.get<Club[]>("/clubs")
       .then(res => {

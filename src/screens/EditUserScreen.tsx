@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { isTokenExpired } from "../lib/auth";
+// import { useNavigate } from "react-router-dom";
 import api from "../services/api";
 import {
   Box,
@@ -39,15 +38,8 @@ const EditUserScreen: React.FC<EditUserScreenProps> = ({ userId, onSuccess, onCa
   const [roles, setRoles] = useState<Role[]>([]);
   const [userTypes, setUserTypes] = useState<UserType[]>([]);
   const [loading, setLoading] = useState(true);
-  const navigate = useNavigate();
 
   useEffect(() => {
-    const token = sessionStorage.getItem("token");
-    if (isTokenExpired(token)) {
-      sessionStorage.removeItem("token");
-      navigate("/login");
-      return;
-    }
     const fetchData = async () => {
       try {
         const token = sessionStorage.getItem("token");
@@ -66,7 +58,7 @@ const EditUserScreen: React.FC<EditUserScreenProps> = ({ userId, onSuccess, onCa
           userTypeId: userRes.data.userType?.id || "",
         });
       } catch {
-        setError("No se pudo cargar la información del usuario.");
+        setError("No se pudo cargar la informaci\u00f3n del usuario.");
       } finally {
         setLoading(false);
       }

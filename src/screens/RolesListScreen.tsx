@@ -1,41 +1,63 @@
-  const ROLES_ENDPOINT = import.meta.env.VITE_API_ROLES || '/roles';
-import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { isTokenExpired } from '../lib/auth';
+
+import React, { useState, useEffect } from 'react';
 import api from '../services/api';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import { DataGrid, type GridColDef } from '@mui/x-data-grid';
 import IconButton from '@mui/material/IconButton';
 import Tooltip from '@mui/material/Tooltip';
-import Stack from '@mui/material/Stack';
-import DeleteIcon from '@mui/icons-material/Delete';
-import EditIcon from '@mui/icons-material/Edit';
 import AddIcon from '@mui/icons-material/Add';
-import CircularProgress from '@mui/material/CircularProgress';
+import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
 import Dialog from '@mui/material/Dialog';
-import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
+import DialogTitle from '@mui/material/DialogTitle';
 import DialogActions from '@mui/material/DialogActions';
 import Button from '@mui/material/Button';
+import CircularProgress from '@mui/material/CircularProgress';
 import CreateRoleScreen from './CreateRoleScreen';
 import EditRoleScreen from './EditRoleScreen';
+import { useTheme } from '@mui/material/styles';
+import useMediaQuery from '@mui/material/useMediaQuery';
+
+const ROLES_ENDPOINT = import.meta.env.VITE_API_ROLES || '/roles';
 
 const RolesListScreen: React.FC = () => {
-  const navigate = useNavigate();
+  const theme = useTheme();
+  const isXs = useMediaQuery(theme.breakpoints.down('sm'));
   const [processing, setProcessing] = useState(false);
   const [roles, setRoles] = useState<any[]>([]);
-    const [deleteRoleId, setDeleteRoleId] = useState<string | null>(null);
-    const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
-    const [openCreateDialog, setOpenCreateDialog] = useState(false);
-    const [openEditDialog, setOpenEditDialog] = useState(false);
-    const [editRoleId, setEditRoleId] = useState<string | null>(null);
+  const [openCreateDialog, setOpenCreateDialog] = useState(false);
+  const [openEditDialog, setOpenEditDialog] = useState(false);
+  const [editRoleId, setEditRoleId] = useState<string | null>(null);
+  const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
+  const [deleteRoleId, setDeleteRoleId] = useState<string | null>(null);
+
+  const fetchRoles = async () => {
+    setProcessing(true);
+    const token = sessionStorage.getItem('token');
+    try {
+      const response = await api.get(ROLES_ENDPOINT, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setRoles(response.data);
+    } catch (err) {
+      // Handle error
+    } finally {
+      setProcessing(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchRoles();
+  }, []);
+
   const handleAdd = () => {
     setOpenCreateDialog(true);
   };
 
-  const handleEdit = (role: any) => {
-    setEditRoleId(role.id);
+  const handleEdit = (id: string) => {
+    setEditRoleId(id);
     setOpenEditDialog(true);
   };
 
@@ -52,94 +74,57 @@ const RolesListScreen: React.FC = () => {
   const handleDeleteConfirm = async () => {
     if (!deleteRoleId) return;
     setProcessing(true);
+    const token = sessionStorage.getItem('token');
     try {
-      const token = sessionStorage.getItem('token');
       await api.delete(`${ROLES_ENDPOINT}/${deleteRoleId}`, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
       });
-      // Actualizar lista de roles
-      const response = await api.get(ROLES_ENDPOINT, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setRoles(response.data);
-    } catch (err) {
-      // Puedes agregar manejo de error aquí si lo deseas
-    } finally {
-      setProcessing(false);
+      await fetchRoles();
       setOpenDeleteDialog(false);
       setDeleteRoleId(null);
+    } catch (err) {
+      // Handle error
+    } finally {
+      setProcessing(false);
     }
   };
 
-  useEffect(() => {
-    // Token expiration check
-    const token = sessionStorage.getItem('token');
-    if (isTokenExpired(token)) {
-      sessionStorage.removeItem('token');
-      navigate('/login');
-      return;
-    }
-    const fetchRoles = async () => {
-      const token = sessionStorage.getItem('token');
-      const response = await api.get(ROLES_ENDPOINT, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setRoles(response.data);
-    };
-    fetchRoles();
-  }, []);
-
   const columns: GridColDef[] = [
-    {
-      field: 'name',
-      headerName: 'Nombre',
-      flex: 1,
-      minWidth: 200,
-    },
-    {
-      field: 'isActive',
-      headerName: 'Estado',
-      width: 120,
-      renderCell: (params) => params.value ? 'Activo' : 'Inactivo',
-      align: 'center',
-      headerAlign: 'center',
-    },
+    { field: 'id', headerName: 'ID', width: 90 },
+    { field: 'name', headerName: 'Nombre', flex: 1, minWidth: 150 },
     {
       field: 'actions',
       headerName: 'Acciones',
-      width: 180,
+      width: 150,
       sortable: false,
-      filterable: false,
-      align: 'center',
-      headerAlign: 'center',
       renderCell: (params) => (
-        <Stack direction="row" spacing={1} justifyContent="center" alignItems="center" width="100%">
+        <Box display="flex" gap={1}>
           <Tooltip title="Editar">
-            <IconButton size="small" color="primary" onClick={() => handleEdit(params.row)}>
-              <EditIcon />
+            <IconButton color="primary" onClick={() => handleEdit(params.row.id)} size="small">
+              <EditIcon fontSize="inherit" />
             </IconButton>
           </Tooltip>
           <Tooltip title="Eliminar">
-            <IconButton size="small" color="error" onClick={() => handleDelete(params.row.id)}>
-              <DeleteIcon />
+            <IconButton color="error" onClick={() => handleDelete(params.row.id)} size="small">
+              <DeleteIcon fontSize="inherit" />
             </IconButton>
           </Tooltip>
-        </Stack>
+        </Box>
       ),
     },
   ];
 
-
-
-
-
-
-
-
-
-
   return (
-    <Box width="100vw" height="100vh" bgcolor="#f5f5f5" p={3} display="flex" flexDirection="column" alignItems="center" sx={{ boxSizing: 'border-box', overflow: 'hidden', position: 'relative' }}>
+    <Box
+      width="100%"
+      minHeight="100%"
+      bgcolor="#f5f5f5"
+      p={{ xs: 1, sm: 2, md: 3 }}
+      display="flex"
+      flexDirection="column"
+      alignItems="center"
+      sx={{ boxSizing: 'border-box', position: 'relative', overflow: 'visible' }}
+    >
       {processing && (
         <Box
           sx={{
@@ -167,7 +152,15 @@ const RolesListScreen: React.FC = () => {
           </IconButton>
         </Tooltip>
       </Box>
-      <Box width="100%" maxWidth={1000} mx="auto" flex={1} sx={{ boxSizing: 'border-box', overflowX: 'auto', height: 'calc(100vh - 120px)' }}>
+      <Box width="100%" maxWidth={1000} mx="auto" flex={1} sx={{
+        boxSizing: 'border-box',
+        overflow: 'visible',
+        height: { xs: 'auto', md: 'auto' },
+        minHeight: 300,
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'flex-start',
+      }}>
         <DataGrid
           rows={roles}
           columns={columns}
@@ -178,15 +171,15 @@ const RolesListScreen: React.FC = () => {
             },
           }}
           pageSizeOptions={[10, 20, 50]}
+          autoHeight
           sx={{
             width: '100%',
-            minWidth: 400,
-            minHeight: '60vh',
-            maxHeight: '100%',
+            minWidth: 320,
             background: '#fff',
+            maxWidth: 1000,
             margin: '0 auto',
             boxSizing: 'border-box',
-            overflow: 'auto',
+            overflow: 'visible',
             '& .MuiDataGrid-columnHeader': {
               fontWeight: 'bold',
             },
@@ -204,14 +197,14 @@ const RolesListScreen: React.FC = () => {
       <Dialog
         open={openCreateDialog}
         onClose={() => setOpenCreateDialog(false)}
-        maxWidth={false}
+        maxWidth={isXs ? false : 'md'}
         fullWidth
         disableEscapeKeyDown
         sx={{
           '& .MuiDialog-paper': {
-            width: '100%',
-            maxWidth: '1000px',
-            height: '80vh',
+            width: isXs ? '100vw' : '90vw',
+            maxWidth: isXs ? '100vw' : 600,
+            height: isXs ? '100vh' : '90vh',
             margin: 'auto',
             display: 'flex',
             alignItems: 'center',
@@ -229,14 +222,14 @@ const RolesListScreen: React.FC = () => {
       <Dialog
         open={openEditDialog}
         onClose={() => setOpenEditDialog(false)}
-        maxWidth={false}
+        maxWidth={isXs ? false : 'md'}
         fullWidth
         disableEscapeKeyDown
         sx={{
           '& .MuiDialog-paper': {
-            width: '100%',
-            maxWidth: '1000px',
-            height: '80vh',
+            width: isXs ? '100vw' : '90vw',
+            maxWidth: isXs ? '100vw' : 600,
+            height: isXs ? '100vh' : '90vh',
             margin: 'auto',
             display: 'flex',
             alignItems: 'center',

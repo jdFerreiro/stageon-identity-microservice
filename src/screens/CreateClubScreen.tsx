@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { isTokenExpired } from "../lib/auth";
+import React, { useState } from "react";
+// import { useNavigate } from "react-router-dom";
+// import { isTokenExpired } from "../lib/auth";
 import api from "../services/api";
 import {
   Box,
@@ -44,15 +44,9 @@ const CreateClubScreen: React.FC<CreateClubScreenProps> = ({ onSuccess, onCancel
   const [error, setError] = useState("");
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [processing, setProcessing] = useState(false);
-  const navigate = useNavigate();
   // ...existing code...
 
-  useEffect(() => {
-    const token = sessionStorage.getItem("token");
-    if (isTokenExpired(token)) {
-      navigate("/login");
-    }
-  }, [navigate]);
+  // No token expiration check
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, files } = e.target;

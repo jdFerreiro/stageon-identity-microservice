@@ -1,6 +1,4 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { isTokenExpired } from "../lib/auth";
 import { Box, Typography, List, ListItem, ListItemButton, ListItemText, Divider, Paper } from "@mui/material";
 import EditUserScreen from "./EditUserScreen";
 import ClubesUsuarioList from "./ClubesUsuarioList";
@@ -19,15 +17,10 @@ function getUserIdFromToken(token: string): string | null {
 const PerfilScreen: React.FC = () => {
   const [selectedMenu, setSelectedMenu] = useState<"datos" | "clubes">("datos");
   const [usuarioId, setUsuarioId] = useState<string | null>(null);
-  const navigate = useNavigate();
 
   useEffect(() => {
     const token = sessionStorage.getItem("token");
-    if (isTokenExpired(token)) {
-      sessionStorage.removeItem("token");
-      navigate("/login");
-      return;
-    }
+    // Eliminada verificación de expiración de token
     if (token) {
       const id = getUserIdFromToken(token);
 
@@ -36,9 +29,20 @@ const PerfilScreen: React.FC = () => {
   }, [sessionStorage.getItem("token")]);
 
   return (
-    <Box display="flex" minHeight="80vh">
+    <Box display="flex" height="80vh" minHeight="400px">
       {/* Panel izquierdo */}
-      <Paper elevation={3} sx={{ width: 240, minHeight: "100%", p: 2, bgcolor: "#f5f5f5" }}>
+      <Paper
+        elevation={3}
+        sx={{
+          width: 240,
+          height: '100%',
+          p: 2,
+          bgcolor: '#f5f5f5',
+          overflow: 'auto',
+          display: 'flex',
+          flexDirection: 'column',
+        }}
+      >
         <Typography variant="h6" mb={2}>Perfil</Typography>
         <Divider />
         <List>
@@ -61,7 +65,7 @@ const PerfilScreen: React.FC = () => {
         </List>
       </Paper>
       {/* Panel derecho */}
-      <Box flex={1} p={4}>
+      <Box flex={1} p={4} height="100%" overflow="auto">
         {usuarioId ? (
           selectedMenu === "datos" ? (
             <EditUserScreen userId={usuarioId} onSuccess={() => {}} onCancel={() => {}} source="perfil" />

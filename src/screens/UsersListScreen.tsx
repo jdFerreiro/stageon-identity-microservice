@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { isTokenExpired } from "../lib/auth";
-import { useNavigate } from "react-router-dom";
+// import { isTokenExpired } from "../lib/auth";
 import api from "../services/api";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
@@ -32,7 +31,6 @@ const UsersListScreen: React.FC = () => {
   const theme = useTheme();
   const isXs = useMediaQuery(theme.breakpoints.down('sm'));
   const [processing, setProcessing] = useState(false);
-  const navigate = useNavigate();
   const [openCreate, setOpenCreate] = useState(false);
   const [openEdit, setOpenEdit] = useState(false);
   const [editUserId, setEditUserId] = useState<string | null>(null);
@@ -55,22 +53,13 @@ const UsersListScreen: React.FC = () => {
       });
       setUsers(response.data);
     } catch (err: any) {
-      if (err?.response?.status === 401 || err?.response?.status === 403) {
-  sessionStorage.removeItem("token");
-        navigate("/");
-      }
+    // Removed token expiration/sessionStorage.removeItem logic
     } finally {
       setProcessing(false);
     }
   };
 
   useEffect(() => {
-  const token = sessionStorage.getItem("token");
-    if (isTokenExpired(token)) {
-  sessionStorage.removeItem("token");
-      navigate("/login");
-      return;
-    }
     fetchUsers();
   }, []);
 
@@ -189,14 +178,14 @@ const UsersListScreen: React.FC = () => {
 
   return (
     <Box
-      width="100vw"
-      height="100vh"
+      width="100%"
+      minHeight="100%"
       bgcolor="#f5f5f5"
-      p={3}
+      p={{ xs: 1, sm: 2, md: 3 }}
       display="flex"
       flexDirection="column"
       alignItems="center"
-      sx={{ boxSizing: 'border-box', overflow: 'hidden', position: 'relative' }}
+      sx={{ boxSizing: 'border-box', position: 'relative', overflow: 'visible' }}
     >
       {processing && (
         <Box
@@ -244,8 +233,9 @@ const UsersListScreen: React.FC = () => {
         disableEscapeKeyDown
         sx={{
           '& .MuiDialog-paper': {
-            width: '50vw',
-            height: '80vh',
+            width: '90vw',
+            maxWidth: 600,
+            height: '90vh',
             margin: 'auto',
             display: 'flex',
             alignItems: 'center',
@@ -254,7 +244,7 @@ const UsersListScreen: React.FC = () => {
         }}
       >
         <DialogTitle>Crear Usuario</DialogTitle>
-        <DialogContent sx={{ width: '90%', height: '100%' }}>
+        <DialogContent sx={{ width: '100%', height: '100%' }}>
           <CreateUserScreen onSuccess={() => { setOpenCreate(false); fetchUsers(); }} onCancel={() => setOpenCreate(false)} />
         </DialogContent>
       </Dialog>
@@ -268,8 +258,9 @@ const UsersListScreen: React.FC = () => {
         disableEscapeKeyDown
         sx={{
           '& .MuiDialog-paper': {
-            width: '50vw',
-            height: '80vh',
+            width: '90vw',
+            maxWidth: 600,
+            height: '90vh',
             margin: 'auto',
             display: 'flex',
             alignItems: 'center',
@@ -278,12 +269,20 @@ const UsersListScreen: React.FC = () => {
         }}
       >
         <DialogTitle>Editar Usuario</DialogTitle>
-        <DialogContent sx={{ width: '90%', height: '100%' }}>
+        <DialogContent sx={{ width: '100%', height: '100%' }}>
           {editUserId && <EditUserScreen userId={editUserId} onSuccess={() => { setOpenEdit(false); fetchUsers(); }} onCancel={() => setOpenEdit(false)} source="list" />}
         </DialogContent>
       </Dialog>
 
-      <Box width="100%" maxWidth={1200} mx="auto" flex={1} sx={{ boxSizing: 'border-box', overflow: 'auto', height: 'calc(100vh - 120px)' }}>
+      <Box width="100%" maxWidth={1200} mx="auto" flex={1} sx={{
+        boxSizing: 'border-box',
+        overflow: 'visible',
+        height: { xs: 'auto', md: 'auto' },
+        minHeight: 300,
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'flex-start',
+      }}>
         <DataGrid
           rows={users}
           columns={columns}
@@ -294,15 +293,15 @@ const UsersListScreen: React.FC = () => {
             },
           }}
           pageSizeOptions={[10, 20, 50]}
+          autoHeight
           sx={{
             width: '100%',
-            minHeight: '60vh',
-            maxHeight: '100%',
+            minWidth: 320,
             background: '#fff',
             maxWidth: 1200,
             margin: '0 auto',
             boxSizing: 'border-box',
-            overflow: 'auto',
+            overflow: 'visible',
             '& .MuiDataGrid-columnHeader': {
               fontWeight: 'bold',
             },

@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { Dialog, DialogTitle, DialogContent, DialogActions, Button, IconButton } from "@mui/material";
-import { useNavigate } from "react-router-dom";
-import { isTokenExpired } from "../lib/auth";
+import Box from '@mui/material/Box';
+// import { useNavigate } from "react-router-dom";
+// import { isTokenExpired } from "../lib/auth";
 import api from "../services/api";
 import CreateClubUsuario from './CreateClubUsuario';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -36,7 +37,6 @@ interface Props {
 }
 
 const ClubesUsuarioList: React.FC<Props> = ({ usuarioId }) => {
-  const navigate = useNavigate();
   const [clubes, setClubes] = useState<(Club & { memberNumber?: string; userClubId?: string })[]>([]);
   const [loading, setLoading] = useState(true);
   const [openAgregar, setOpenAgregar] = useState(false);
@@ -74,12 +74,6 @@ const ClubesUsuarioList: React.FC<Props> = ({ usuarioId }) => {
   };
 
   useEffect(() => {
-    // Verificar expiración de token
-    const token = sessionStorage.getItem("token");
-    if (isTokenExpired(token)) {
-      navigate("/login");
-      return;
-    }
     fetchClubes();
     // eslint-disable-next-line
   }, [usuarioId]);
@@ -93,8 +87,8 @@ const ClubesUsuarioList: React.FC<Props> = ({ usuarioId }) => {
 
   // ...
   return (
-    <div style={{ overflowX: 'auto', width: '100%' }}>
-      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 16 }}>
+    <Box width="100%" minHeight="100vh" bgcolor="#f5f5f5" p={{ xs: 1, sm: 2, md: 3 }} display="flex" flexDirection="column" alignItems="center" sx={{ boxSizing: 'border-box', position: 'relative', overflow: 'visible' }}>
+      <Box width="100%" maxWidth={1000} mx="auto" mb={3} display="flex" justifyContent="flex-end" alignItems="center" sx={{ boxSizing: 'border-box' }}>
         <Tooltip title="Agregar" arrow>
           <IconButton color="primary" onClick={() => setOpenAgregar(true)}>
             <span style={{ display: 'flex', alignItems: 'center' }}>
@@ -102,49 +96,71 @@ const ClubesUsuarioList: React.FC<Props> = ({ usuarioId }) => {
             </span>
           </IconButton>
         </Tooltip>
-      </div>
-      <ul style={{ minWidth: 600, padding: 0, margin: 0, listStyle: 'none' }}>
-        {clubes.map(club => (
-          <li
-            key={club.id}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 8,
-              minWidth: 600,
-              borderBottom: '1px solid #e0e0e0',
-              padding: '12px 0',
-            }}
-          >
-            <strong style={{ width: '30%' }}>
-              {club.name}
-              {club.memberNumber && (
-                <span style={{ color: '#888', fontWeight: 'normal', marginLeft: 8, fontSize: 14 }}>
-                  (Nº socio: {club.memberNumber})
-                </span>
-              )}
-            </strong>
-            {club.description && <span style={{ width: '40%' }}>{club.description}</span>}
-            <IconButton
-              aria-label="Editar club"
-              color="primary"
-              size="small"
-              onClick={() => setEditClub({ clubId: club.id, memberNumber: club.memberNumber || '', clubName: club.name, userClubId: club.userClubId })}
-              sx={{ ml: 1 }}
+      </Box>
+      <Box width="100%" maxWidth={1000} mx="auto" flex={1} sx={{ boxSizing: 'border-box', overflow: 'visible', minHeight: 300, display: 'flex', flexDirection: 'column', justifyContent: 'flex-start' }}>
+        <Box component="ul" sx={{ width: '100%', p: 0, m: 0, listStyle: 'none' }}>
+          {clubes.map(club => (
+            <Box
+              component="li"
+              key={club.id}
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: { xs: 1, sm: 2 },
+                borderBottom: '1px solid #e0e0e0',
+                py: 1.5,
+                px: { xs: 0, sm: 1 },
+                minWidth: 0,
+                flexWrap: { xs: 'wrap', sm: 'nowrap' },
+              }}
             >
-              <EditIcon fontSize="small" />
-            </IconButton>
-            <IconButton
-              aria-label="Eliminar club"
-              color="error"
-              size="small"
-              onClick={() => handleRemoveClub(club.id)}
-              sx={{ ml: 1 }}
-            >
-              <DeleteIcon fontSize="small" />
-            </IconButton>
-          </li>
-        ))}
+              {/* Logo club */}
+              <Box sx={{ width: { xs: 48, sm: 64 }, height: { xs: 48, sm: 64 }, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', mr: { xs: 1, sm: 2 } }}>
+                {club.logo ? (
+                  <Box component="img" src={club.logo} alt={club.name} sx={{ width: '100%', height: '100%', objectFit: 'contain', borderRadius: 2, bgcolor: '#fff', border: '1px solid #eee', boxShadow: 1 }} />
+                ) : (
+                  <Box sx={{ width: '100%', height: '100%', borderRadius: 2, bgcolor: '#eee', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#aaa', fontSize: 24, fontWeight: 700 }}>
+                    {club.name?.[0] || '?'}
+                  </Box>
+                )}
+              </Box>
+              {/* Datos club */}
+              <Box sx={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, alignItems: { xs: 'flex-start', sm: 'center' }, gap: { xs: 0.5, sm: 2 } }}>
+                <Box sx={{ fontWeight: 700, fontSize: { xs: 16, sm: 18 }, width: { xs: '100%', sm: '30%' }, minWidth: 0, wordBreak: 'break-word' }}>
+                  {club.name}
+                  {club.memberNumber && (
+                    <Box component="span" sx={{ color: '#888', fontWeight: 400, ml: 1, fontSize: { xs: 13, sm: 14 } }}>
+                      (Nº socio: {club.memberNumber})
+                    </Box>
+                  )}
+                </Box>
+                {club.description && (
+                  <Box sx={{ width: { xs: '100%', sm: '40%' }, color: '#555', fontSize: { xs: 14, sm: 16 }, minWidth: 0, wordBreak: 'break-word' }}>{club.description}</Box>
+                )}
+              </Box>
+              {/* Acciones */}
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, ml: { xs: 0, sm: 1 } }}>
+                <IconButton
+                  aria-label="Editar club"
+                  color="primary"
+                  size="small"
+                  onClick={() => setEditClub({ clubId: club.id, memberNumber: club.memberNumber || '', clubName: club.name, userClubId: club.userClubId })}
+                >
+                  <EditIcon fontSize="small" />
+                </IconButton>
+                <IconButton
+                  aria-label="Eliminar club"
+                  color="error"
+                  size="small"
+                  onClick={() => handleRemoveClub(club.id)}
+                >
+                  <DeleteIcon fontSize="small" />
+                </IconButton>
+              </Box>
+            </Box>
+          ))}
+        </Box>
+      </Box>
       {/* Modal de edición de número de socio */}
       <Dialog open={!!editClub} onClose={() => setEditClub(null)} maxWidth="xs" fullWidth>
         <DialogTitle>Editar número de socio</DialogTitle>
@@ -168,7 +184,6 @@ const ClubesUsuarioList: React.FC<Props> = ({ usuarioId }) => {
           <Button onClick={() => setEditClub(null)}>Cerrar</Button>
         </DialogActions>
       </Dialog>
-      </ul>
       <Dialog open={openAgregar} onClose={() => setOpenAgregar(false)} maxWidth="sm" fullWidth>
         <DialogTitle>Agregar club al usuario</DialogTitle>
         <DialogContent>
@@ -186,7 +201,7 @@ const ClubesUsuarioList: React.FC<Props> = ({ usuarioId }) => {
           <Button onClick={() => setOpenAgregar(false)}>Cerrar</Button>
         </DialogActions>
       </Dialog>
-    </div>
+    </Box>
   );
 };
 

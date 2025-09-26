@@ -14,7 +14,6 @@ import {
   DialogActions,
   Alert,
   CircularProgress,
-  Stack,
   Tooltip,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
@@ -43,7 +42,7 @@ const UserTypesListScreen: React.FC = () => {
     setLoading(true);
     setError("");
     try {
-  const token = sessionStorage.getItem("token");
+      const token = sessionStorage.getItem("token");
       const res = await api.get("/user-types", {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -95,7 +94,7 @@ const UserTypesListScreen: React.FC = () => {
     if (!deleteId) return;
     setSaving(true);
     try {
-  const token = sessionStorage.getItem("token");
+      const token = sessionStorage.getItem("token");
       await api.delete(`/user-types/${deleteId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -109,90 +108,108 @@ const UserTypesListScreen: React.FC = () => {
   };
 
   return (
-    <Box sx={{
-      width: '100vw',
-      height: '100vh',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      background: '#f7f7f7',
-    }}>
-      <Box sx={{
-        width: { xs: '100%', sm: 500, md: 600 },
-        minHeight: 350,
-        background: '#fff',
-        borderRadius: 3,
-        boxShadow: 3,
-        p: 4,
+    <Box
+      width="100%"
+      minHeight="100vh"
+      bgcolor="#f5f5f5"
+      p={{ xs: 1, sm: 2, md: 3 }}
+      display="flex"
+      flexDirection="column"
+      alignItems="center"
+      sx={{ boxSizing: 'border-box', position: 'relative', overflow: 'visible' }}
+    >
+      <Box width="100%" maxWidth={1000} mx="auto" mb={3} display="flex" justifyContent="space-between" alignItems="center" sx={{ boxSizing: 'border-box' }}>
+        <Typography variant="h4">Tipos de Usuario</Typography>
+        <Tooltip title="Agregar">
+          <IconButton color="primary" onClick={handleOpenCreate} size="large">
+            <AddIcon fontSize="inherit" />
+          </IconButton>
+        </Tooltip>
+      </Box>
+      {loading && <CircularProgress />}
+      {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+      <Box width="100%" maxWidth={1000} mx="auto" flex={1} sx={{
+        boxSizing: 'border-box',
+        overflow: 'visible',
+        minHeight: 300,
         display: 'flex',
         flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
+        justifyContent: 'flex-start',
       }}>
-        <Stack direction="row" justifyContent="space-between" alignItems="center" mb={2} width="100%">
-          <Typography variant="h5" sx={{ flex: 1, textAlign: 'center' }}>Tipos de Usuario</Typography>
-          <Tooltip title="Agregar">
-            <IconButton color="primary" onClick={handleOpenCreate} sx={{ ml: 2 }}>
-              <AddIcon />
-            </IconButton>
-          </Tooltip>
-        </Stack>
-        {loading && <CircularProgress />}
-        {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
-        <List sx={{ width: '100%', maxWidth: 500, mt: 2 }}>
+        <List sx={{ width: '100%', maxWidth: 1000 }}>
           {userTypes.map((type) => (
             <ListItem
               key={type.id}
               secondaryAction={
-                <>
-                  <IconButton edge="end" aria-label="edit" onClick={() => handleOpenEdit(type.id)}>
-                    <EditIcon />
-                  </IconButton>
-                  <IconButton edge="end" aria-label="delete" onClick={() => handleOpenConfirm(type.id)}>
-                    <DeleteIcon />
-                  </IconButton>
-                </>
+                <Box display="flex" gap={1}>
+                  <Tooltip title="Editar">
+                    <IconButton edge="end" color="primary" aria-label="edit" onClick={() => handleOpenEdit(type.id)} size="small">
+                      <EditIcon fontSize="inherit" />
+                    </IconButton>
+                  </Tooltip>
+                  <Tooltip title="Eliminar">
+                    <IconButton edge="end" color="error" aria-label="delete" onClick={() => handleOpenConfirm(type.id)} size="small">
+                      <DeleteIcon fontSize="inherit" />
+                    </IconButton>
+                  </Tooltip>
+                </Box>
               }
+              sx={{ justifyContent: 'center', alignItems: 'stretch' }}
             >
               <ListItemText primary={type.name} />
             </ListItem>
           ))}
         </List>
-        {/* Modal para crear/editar */}
-        <Dialog open={modalOpen} onClose={handleCloseModal}>
-          <DialogTitle>
-            {modalMode === "create" ? "Crear Tipo de Usuario" : "Editar Tipo de Usuario"}
-          </DialogTitle>
-          <DialogContent>
-            {modalMode === "create" ? (
-              <CreateUserTypeScreen onSuccess={handleSuccess} onCancel={handleCloseModal} />
-            ) : (
-              selectedUserTypeId && (
-                <EditUserTypeScreen
-                  userTypeId={selectedUserTypeId}
-                  onSuccess={handleSuccess}
-                  onCancel={handleCloseModal}
-                />
-              )
-            )}
-          </DialogContent>
-        </Dialog>
-        {/* Diálogo de confirmación para eliminar */}
-        <Dialog open={confirmOpen} onClose={handleCloseConfirm}>
-          <DialogTitle>¿Eliminar tipo de usuario?</DialogTitle>
-          <DialogContent>
-            <Typography>¿Está seguro que desea eliminar este tipo de usuario?</Typography>
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={handleCloseConfirm} disabled={saving}>Cancelar</Button>
-            <Button onClick={handleDelete} color="error" variant="contained" disabled={saving}>
-              {saving ? "Eliminando..." : "Eliminar"}
-            </Button>
-          </DialogActions>
-        </Dialog>
       </Box>
+      {/* Modal para crear/editar */}
+      <Dialog
+        open={modalOpen}
+        onClose={handleCloseModal}
+        maxWidth={false}
+        fullWidth
+        disableEscapeKeyDown
+        sx={{
+          '& .MuiDialog-paper': {
+            width: { xs: '100vw', sm: '90vw' },
+            maxWidth: 600,
+            height: { xs: '100vh', sm: '90vh' },
+            margin: 'auto',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          },
+        }}
+      >
+        <DialogTitle>{modalMode === 'create' ? 'Crear Tipo de Usuario' : 'Editar Tipo de Usuario'}</DialogTitle>
+        <DialogContent sx={{ width: '100%', height: '100%' }}>
+          {modalMode === 'create' ? (
+            <CreateUserTypeScreen onSuccess={handleSuccess} onCancel={handleCloseModal} />
+          ) : (
+            selectedUserTypeId && (
+              <EditUserTypeScreen
+                userTypeId={selectedUserTypeId}
+                onSuccess={handleSuccess}
+                onCancel={handleCloseModal}
+              />
+            )
+          )}
+        </DialogContent>
+      </Dialog>
+      {/* Diálogo de confirmación para eliminar */}
+      <Dialog open={confirmOpen} onClose={handleCloseConfirm} maxWidth="xs" fullWidth>
+        <DialogTitle>¿Eliminar tipo de usuario?</DialogTitle>
+        <DialogContent>
+          <Typography>¿Está seguro que desea eliminar este tipo de usuario?</Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseConfirm} disabled={saving}>Cancelar</Button>
+          <Button onClick={handleDelete} color="error" variant="contained" disabled={saving}>
+            {saving ? 'Eliminando...' : 'Eliminar'}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
-}
+};
 
 export default UserTypesListScreen;

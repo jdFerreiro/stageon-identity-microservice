@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { isTokenExpired } from '../lib/auth';
+// import { useNavigate } from 'react-router-dom';
+// import { isTokenExpired } from '../lib/auth';
 import api from '../services/api';
 import {
   Box,
@@ -21,7 +21,6 @@ interface EditRoleScreenProps {
 }
 
 const EditRoleScreen: React.FC<EditRoleScreenProps> = ({ id }) => {
-  const navigate = useNavigate();
   const [isActive, setIsActive] = useState(false);
   const [name, setName] = useState('');
   const [error, setError] = useState('');
@@ -29,13 +28,6 @@ const EditRoleScreen: React.FC<EditRoleScreenProps> = ({ id }) => {
 
   const ROLES_ENDPOINT = import.meta.env.VITE_API_ROLES || '/roles';
   useEffect(() => {
-    // Token expiration check
-    const token = sessionStorage.getItem('token');
-    if (isTokenExpired(token)) {
-      sessionStorage.removeItem('token');
-      navigate('/login');
-      return;
-    }
     const fetchRole = async () => {
       const token = sessionStorage.getItem('token');
       const response = await api.get(`${ROLES_ENDPOINT}/${id}`, {

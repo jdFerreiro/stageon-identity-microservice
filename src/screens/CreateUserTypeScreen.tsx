@@ -1,7 +1,5 @@
 import React, { useState } from "react";
-import { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { isTokenExpired } from "../lib/auth";
+// import { useNavigate } from "react-router-dom";
 import api from "../services/api";
 import {
   Box,
@@ -17,14 +15,7 @@ type CreateUserTypeScreenProps = {
 };
 
 const CreateUserTypeScreen: React.FC<CreateUserTypeScreenProps> = ({ onSuccess, onCancel }) => {
-  const navigate = useNavigate();
-  useEffect(() => {
-    const token = sessionStorage.getItem("token");
-    if (isTokenExpired(token)) {
-      sessionStorage.removeItem("token");
-      navigate("/login");
-    }
-  }, [navigate]);
+  // No token expiration check
   const [name, setName] = useState("");
   const [error, setError] = useState("");
   const [processing, setProcessing] = useState(false);
